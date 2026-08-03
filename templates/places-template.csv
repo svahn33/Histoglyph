@@ -1,0 +1,2 @@
+id,name,historical_name,country_code,country,latitude,longitude,map_x,map_y,precision,verification_status,source,source_id,notes
+place-example-city,Example City,,EX,Example Country,59.3293,18.0686,,,locality,automatically_matched,Your source,source-123,Leave map_x and map_y blank to create an automatic suggestion

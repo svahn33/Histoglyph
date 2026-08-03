@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="A historical person guessing game using verified map positions."
+  >
+  <title>Who Is the Historical Person?</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <main class="game-shell">
+    <header class="game-header">
+      <div>
+        <p class="eyebrow">Historical map game</p>
+        <h1>Who is the person?</h1>
+        <p class="intro">
+          The green dot shows the birthplace and the red dot shows the place
+          of death. Each location is stored once in the place registry and can
+          be manually verified on the map.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <a class="secondary-button link-button" href="admin.html">
+          Open data manager
+        </a>
+
+        <div class="score-card" aria-label="Current score">
+          <span>Score</span>
+          <strong id="score">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="controls-panel" aria-label="Game settings">
+      <label for="period-filter">
+        Historical period
+        <select id="period-filter">
+          <option value="all">All periods</option>
+        </select>
+      </label>
+
+      <button id="new-game-button" class="secondary-button" type="button">
+        New game
+      </button>
+    </section>
+
+    <section class="clue-panel" aria-live="polite">
+      <div class="year-box birth-year-box">
+        <span>Born</span>
+        <strong id="birth-year">–</strong>
+      </div>
+
+      <div class="round-box">
+        <span>Round</span>
+        <strong>
+          <span id="round-number">1</span> /
+          <span id="round-total">5</span>
+        </strong>
+      </div>
+
+      <div class="year-box death-year-box">
+        <span>Died</span>
+        <strong id="death-year">–</strong>
+      </div>
+    </section>
+
+    <p id="data-warning" class="data-warning" hidden>
+      One or both locations have not been manually verified in the data manager.
+    </p>
+
+    <section class="map-card">
+      <div
+        id="map-viewport"
+        class="map-viewport"
+        aria-label="World map with birth and death locations"
+      >
+        <div id="map-scene" class="map-scene">
+          <img
+            class="world-map-image"
+            src="assets/world-map.png"
+            width="1920"
+            height="970"
+            alt="Blank world map"
+            draggable="false"
+          >
+          <span id="birth-marker" class="marker birth-marker"></span>
+          <span id="death-marker" class="marker death-marker"></span>
+        </div>
+      </div>
+
+      <div class="map-footer">
+        <div class="map-legend">
+          <span><i class="legend-dot birth-dot"></i> Birthplace</span>
+          <span><i class="legend-dot death-dot"></i> Place of death</span>
+        </div>
+
+        <p class="map-credit">
+          Static map stored locally in the project.
+        </p>
+      </div>
+    </section>
+
+    <section id="place-details" class="place-details" hidden>
+      <div>
+        <span>Birthplace</span>
+        <strong id="birth-place-name">–</strong>
+      </div>
+      <div>
+        <span>Place of death</span>
+        <strong id="death-place-name">–</strong>
+      </div>
+    </section>
+
+    <section class="answer-card">
+      <form id="guess-form">
+        <label for="guess-input">Enter the person's name</label>
+
+        <div class="input-row">
+          <input
+            id="guess-input"
+            name="guess"
+            type="text"
+            autocomplete="off"
+            placeholder="For example: Napoleon"
+            required
+          >
+          <button id="guess-button" class="primary-button" type="submit">
+            Submit guess
+          </button>
+        </div>
+      </form>
+
+      <div class="action-row">
+        <button id="reveal-button" class="text-button" type="button">
+          Reveal the answer
+        </button>
+
+        <button id="next-button" class="secondary-button" type="button" disabled>
+          Next person
+        </button>
+      </div>
+
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
