@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Choose a Life & Death Map collection in Histoglyph.">
+  <title>Life & Death Map — Histoglyph</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="site-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Histoglyph home">
+      <span class="brand-mark" aria-hidden="true">H</span>
+      <span>Histoglyph</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="admin.html">Data manager</a>
+    </nav>
+  </header>
+
+  <main class="mode-page-shell">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a><span>›</span><span>Life & Death Map</span>
+    </nav>
+
+    <section class="mode-hero">
+      <div>
+        <p class="eyebrow">Map challenge</p>
+        <h1>Life & Death Map</h1>
+        <p>
+          Identify the historical person from two years and the locations where their life began and ended.
+          Choose a collection below. New regional and thematic collections can be added over time.
+        </p>
+      </div>
+      <div class="mode-rules">
+        <span><strong>3</strong> second preview</span>
+        <span><strong>20</strong> seconds to answer</span>
+        <span><strong>1000</strong> maximum points</span>
+      </div>
+    </section>
+
+    <div id="collection-groups" class="collection-groups"></div>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand brand--small" href="index.html"><span class="brand-mark">H</span><span>Histoglyph</span></a>
+    <p>More collections can be activated through <code>data/game-catalog.js</code>.</p>
+  </footer>
+
+
+
+  <dialog id="game-settings-dialog" class="game-settings-dialog" aria-labelledby="game-settings-title">
+    <form id="game-settings-form" class="game-settings-form">
+      <div class="game-settings-heading">
+        <div>
+          <p class="eyebrow">Game settings</p>
+          <h2 id="game-settings-title">Start collection</h2>
+          <p id="game-settings-description">Choose how you want to play this collection.</p>
+        </div>
+        <button id="close-game-settings" class="dialog-close-button" type="button" aria-label="Close settings">×</button>
+      </div>
+
+      <input id="selected-collection-id" type="hidden">
+
+      <div class="game-settings-options">
+        <label class="game-setting-option" for="setting-timed">
+          <span class="game-setting-copy">
+            <strong>Timed game</strong>
+            <small>Use the 20-second timer and lose points linearly as time passes.</small>
+          </span>
+          <input id="setting-timed" type="checkbox" checked>
+        </label>
+
+        <label class="game-setting-option" for="setting-show-places">
+          <span class="game-setting-copy">
+            <strong>Show place names before guessing</strong>
+            <small>Display the birth and death place names beside the markers from the start of each round.</small>
+          </span>
+          <input id="setting-show-places" type="checkbox">
+        </label>
+
+        <label class="game-setting-option game-setting-option--number" for="setting-rounds">
+          <span class="game-setting-copy">
+            <strong>Number of rounds</strong>
+            <small>Choose how many people you want to play. If the collection is smaller, people may reappear.</small>
+          </span>
+          <input id="setting-rounds" class="game-setting-number" type="number" min="1" max="100" step="1" value="5" inputmode="numeric">
+        </label>
+      </div>
+
+      <div class="game-settings-note" id="game-settings-note">
+        Timed games use points that decrease during the 20-second answer period. Untimed games show only the number of correct answers.
+      </div>
+
+      <div class="game-settings-actions">
+        <button id="cancel-game-settings" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Start game</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script defer src="js/life-map.bundle.js"></script>
+</body>
+</html>

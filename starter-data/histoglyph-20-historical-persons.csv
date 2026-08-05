@@ -1,0 +1,21 @@
+﻿id,name,accepted_answers,tags,period,birth_year,death_year,birth_place_id,death_place_id,difficulty,published
+person-george-washington,George Washington,george washington|washington,american-president|north-america|political-leader|american-revolution,American Revolution,1732,1799,place-popes-creek-us,place-mount-vernon-us,1,True
+person-abraham-lincoln,Abraham Lincoln,abraham lincoln|lincoln,american-president|north-america|political-leader|civil-war,19th Century,1809,1865,place-hodgenville-us,place-washington-dc-us,1,True
+person-thomas-jefferson,Thomas Jefferson,thomas jefferson|jefferson,american-president|north-america|political-leader|american-revolution,American Revolution,1743,1826,place-shadwell-us,place-monticello-us,2,True
+person-theodore-roosevelt,Theodore Roosevelt,theodore roosevelt|teddy roosevelt|roosevelt,american-president|north-america|political-leader,19th and 20th Centuries,1858,1919,place-new-york-city-us,place-sagamore-hill-us,2,True
+person-john-f-kennedy,John F. Kennedy,john f kennedy|john fitzgerald kennedy|jfk|kennedy,american-president|north-america|political-leader|cold-war,20th Century,1917,1963,place-brookline-us,place-dallas-us,1,True
+person-queen-victoria,Queen Victoria,queen victoria|victoria,european-monarch|europe|monarch|british-history,19th Century,1819,1901,place-london-gb,place-osborne-house-gb,1,True
+person-louis-xiv,Louis XIV,louis xiv|louis 14|the sun king|sun king,european-monarch|europe|monarch|french-history,Early Modern Period,1638,1715,place-saint-germain-en-laye-fr,place-versailles-fr,2,True
+person-peter-the-great,Peter the Great,peter the great|peter i|peter 1,european-monarch|europe|monarch|russian-history,Early Modern Period,1672,1725,place-moscow-ru,place-saint-petersburg-ru,2,True
+person-catherine-the-great,Catherine the Great,catherine the great|catherine ii|catherine 2,european-monarch|europe|monarch|russian-history,18th Century,1729,1796,place-szczecin-pl,place-tsarskoye-selo-ru,2,True
+person-michelangelo,Michelangelo,michelangelo|michelangelo buonarroti,renaissance|europe|artist|italian-history,Renaissance,1475,1564,place-caprese-michelangelo-it,place-rome-it,1,True
+person-raphael,Raphael,raphael|raffaello sanzio|raphael sanzio,renaissance|europe|artist|italian-history,Renaissance,1483,1520,place-urbino-it,place-rome-it,2,True
+person-niccolo-machiavelli,Niccolò Machiavelli,niccolo machiavelli|machiavelli,renaissance|europe|writer|political-thinker|italian-history,Renaissance,1469,1527,place-florence-it,place-florence-it,2,True
+person-simon-bolivar,Simón Bolívar,simon bolivar|bolivar|the liberator|el libertador,latin-america|south-america|political-leader|independence,Age of Revolutions,1783,1830,place-caracas-ve,place-santa-marta-co,2,True
+person-jose-de-san-martin,José de San Martín,jose de san martin|san martin,latin-america|south-america|political-leader|independence,Age of Revolutions,1778,1850,place-yapeyu-ar,place-boulogne-sur-mer-fr,3,True
+person-eva-peron,Eva Perón,eva peron|evita|eva duarte,latin-america|south-america|political-figure|argentine-history,20th Century,1919,1952,place-los-toldos-ar,place-buenos-aires-ar,1,True
+person-nelson-mandela,Nelson Mandela,nelson mandela|mandela,africa|political-leader|south-africa|anti-apartheid,20th Century,1918,2013,place-mvezo-za,place-johannesburg-za,1,True
+person-haile-selassie,Haile Selassie,haile selassie|ras tafari|tafarí makonnen,africa|monarch|african-history|ethiopia,20th Century,1892,1975,place-ejersa-goro-et,place-addis-ababa-et,2,True
+person-cleopatra-vii,Cleopatra VII,cleopatra|cleopatra vii,africa|monarch|antiquity|egyptian-history,Antiquity,-69,-30,place-alexandria-eg,place-alexandria-eg,1,True
+person-akbar-the-great,Akbar the Great,akbar|akbar the great|akbar i,asian-ruler|asia|monarch|mughal-empire,Early Modern Period,1542,1605,place-umerkot-pk,place-agra-in,2,True
+person-sun-yat-sen,Sun Yat-sen,sun yat-sen|sun yatsen|sun zhongshan,asia|political-leader|chinese-history|revolutionary,19th and 20th Centuries,1866,1925,place-cuiheng-cn,place-beijing-cn,2,True
