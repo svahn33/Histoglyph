@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histoglyph Data Manager</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <section id="admin-auth-gate" class="auth-gate">
+    <form id="admin-login-form" class="auth-card">
+      <p class="eyebrow">Histoglyph</p>
+      <h1>Data manager</h1>
+      <p>Sign in with the administrator account created in Supabase Auth.</p>
+      <label>Email<input id="admin-email" type="email" autocomplete="username" required></label>
+      <label>Password<input id="admin-password" type="password" autocomplete="current-password" required></label>
+      <button class="primary-button" type="submit">Sign in</button>
+      <p id="admin-login-status" class="feedback" aria-live="polite"></p>
+      <a href="index.html">Return to Histoglyph</a>
+    </form>
+  </section>
+
+  <main id="admin-app" class="admin-shell" hidden>
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">Histoglyph · Supabase</p>
+        <h1>Data manager</h1>
+        <p class="intro">The central database is shared by every visitor. Place verification uses the same local vector map and projection as the game.</p>
+      </div>
+      <div class="admin-header-actions">
+        <span id="admin-user-email" class="id-badge"></span>
+        <button id="admin-sign-out" class="secondary-button" type="button">Sign out</button>
+        <a class="secondary-button link-button" href="index.html">Return to Histoglyph</a>
+      </div>
+    </header>
+
+    <section class="metrics-grid" aria-label="Database overview">
+      <div class="metric-card"><span>Places</span><strong id="metric-places">0</strong></div>
+      <div class="metric-card"><span>Verified places</span><strong id="metric-verified">0</strong></div>
+      <div class="metric-card"><span>Needs review</span><strong id="metric-review">0</strong></div>
+      <div class="metric-card"><span>People</span><strong id="metric-persons">0</strong></div>
+    </section>
+
+    <nav class="admin-tabs" aria-label="Data manager sections">
+      <button class="tab-button active" type="button" data-tab="places">Places</button>
+      <button class="tab-button" type="button" data-tab="persons">People</button>
+      <button class="tab-button" type="button" data-tab="transfer">Import and export</button>
+    </nav>
+
+    <section id="tab-places" class="tab-panel">
+      <div class="admin-layout">
+        <aside class="record-browser">
+          <div class="browser-toolbar">
+            <label>Search places<input id="place-search" type="search" placeholder="Name, country or legacy ID"></label>
+            <label>Status<select id="place-status-filter"><option value="all">All statuses</option><option value="manually_verified">Manually verified</option><option value="automatically_matched">Automatically matched</option><option value="unverified">Unverified</option><option value="uncertain">Uncertain</option></select></label>
+          </div>
+          <div class="browser-actions"><button id="new-place-button" class="primary-button" type="button">New place</button><button id="next-review-button" class="secondary-button" type="button">Next to review</button></div>
+          <div id="place-list" class="record-list"></div>
+          <div class="pagination-row"><button id="place-prev" type="button" class="secondary-button">Previous</button><span id="place-page-label">Page 1</span><button id="place-next" type="button" class="secondary-button">Next</button></div>
+        </aside>
+        <section class="editor-panel">
+          <form id="place-form">
+            <div class="editor-heading"><div><p class="eyebrow">Place registry</p><h2 id="place-editor-title">New place</h2></div><span id="place-id-badge" class="id-badge">Unsaved</span></div>
+            <input id="place-id" type="hidden">
+            <div class="form-grid">
+              <label>Name<input id="place-name" required></label><label>Country<input id="place-country" required></label>
+              <label>Latitude<input id="place-latitude" type="number" step="any" min="-90" max="90" required></label><label>Longitude<input id="place-longitude" type="number" step="any" min="-180" max="180" required></label>
+              <label>Precision<select id="place-precision"><option value="exact">Exact site</option><option value="locality" selected>City or locality</option><option value="archaeological_site">Archaeological site</option><option value="region">Region only</option><option value="country">Country only</option><option value="uncertain">Uncertain</option></select></label>
+              <label>Verification status<select id="place-verification-status"><option value="unverified">Unverified</option><option value="automatically_matched">Automatically matched</option><option value="manually_verified">Manually verified</option><option value="uncertain">Uncertain</option></select></label>
+              <label>Source<input id="place-source"></label><label>Source ID<input id="place-source-id"></label>
+            </div>
+            <label>Notes<textarea id="place-notes" rows="3"></textarea></label>
+            <div class="map-editor-section">
+              <div class="map-editor-heading"><div><h3>Detailed map verification</h3><p>Click the map or drag the blue marker. The exact same Robinson projection is used in the game.</p></div></div>
+              <div class="map-toolbar compact-toolbar"><div class="map-toolbar-group"><button class="region-button active" type="button" data-admin-region="world">World</button><button class="region-button" type="button" data-admin-region="northAmerica">North America</button><button class="region-button" type="button" data-admin-region="southAmerica">South America</button><button class="region-button" type="button" data-admin-region="europe">Europe</button><button class="region-button" type="button" data-admin-region="africa">Africa</button><button class="region-button" type="button" data-admin-region="asia">Asia</button><button class="region-button" type="button" data-admin-region="oceania">Oceania</button></div></div>
+              <div id="admin-map" class="offline-vector-map editor-offline-vector-map"><div class="map-loading">Loading local vector map…</div></div>
+            </div>
+            <div id="place-validation" class="validation-panel" aria-live="polite"></div>
+            <div class="form-actions"><button class="primary-button" type="submit">Save place</button><button id="delete-place-button" class="danger-button" type="button" disabled>Delete place</button></div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <section id="tab-persons" class="tab-panel" hidden>
+      <div class="admin-layout">
+        <aside class="record-browser">
+          <label>Search people<input id="person-search" type="search" placeholder="Name, period or legacy ID"></label>
+          <div class="browser-actions"><button id="new-person-button" class="primary-button" type="button">New person</button></div>
+          <div id="person-list" class="record-list"></div>
+          <div class="pagination-row"><button id="person-prev" type="button" class="secondary-button">Previous</button><span id="person-page-label">Page 1</span><button id="person-next" type="button" class="secondary-button">Next</button></div>
+        </aside>
+        <section class="editor-panel">
+          <form id="person-form">
+            <div class="editor-heading"><div><p class="eyebrow">People</p><h2 id="person-editor-title">New person</h2></div><span id="person-id-badge" class="id-badge">Unsaved</span></div>
+            <input id="person-id" type="hidden">
+            <div class="form-grid">
+              <label>Full name<input id="person-name" required></label><label>Historical period<input id="person-period" required></label>
+              <label>Birth year<input id="person-birth-year" type="number" required></label><label>Death year<input id="person-death-year" type="number" required></label>
+              <label>Difficulty<select id="person-difficulty"><option value="1">1 — Easy</option><option value="2">2</option><option value="3">3 — Medium</option><option value="4">4</option><option value="5">5 — Hard</option></select></label>
+              <label>Verification status<select id="person-verification-status"><option value="unverified">Unverified</option><option value="automatically_matched">Automatically matched</option><option value="manually_verified">Manually verified</option><option value="uncertain">Uncertain</option></select></label>
+              <label class="checkbox-label"><input id="person-published" type="checkbox">Published in the game</label>
+            </div>
+            <div class="place-picker-grid">
+              <div class="place-picker"><label>Birthplace<input id="birth-place-search" type="search" autocomplete="off" placeholder="Search central place registry"></label><input id="birth-place-id" type="hidden"><div id="birth-place-selected" class="selected-place">No place selected</div><div id="birth-place-suggestions" class="suggestion-list"></div></div>
+              <div class="place-picker"><label>Place of death<input id="death-place-search" type="search" autocomplete="off" placeholder="Search central place registry"></label><input id="death-place-id" type="hidden"><div id="death-place-selected" class="selected-place">No place selected</div><div id="death-place-suggestions" class="suggestion-list"></div></div>
+            </div>
+            <div class="person-textarea-grid"><label>Accepted answers — one per line<textarea id="person-accepted-answers" rows="5"></textarea></label><label>Collection tags — one per line<textarea id="person-tags" rows="5"></textarea><small class="field-help">Examples: american-president, renaissance, north-america</small></label></div>
+            <div id="person-validation" class="validation-panel" aria-live="polite"></div>
+            <div class="form-actions"><button class="primary-button" type="submit">Save person</button><button id="delete-person-button" class="danger-button" type="button" disabled>Delete person</button></div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <section id="tab-transfer" class="tab-panel" hidden>
+      <div class="transfer-grid">
+        <section class="transfer-card"><h2>Export</h2><p>Exports the central Supabase data in pages, so it also works above the normal API row limit.</p><div class="stacked-actions"><button id="export-json-button" class="primary-button" type="button">Export JSON backup</button><button id="export-places-csv-button" class="secondary-button" type="button">Export places CSV</button><button id="export-persons-csv-button" class="secondary-button" type="button">Export people CSV</button></div></section>
+        <section class="transfer-card"><h2>Import places</h2><p>Import places before people. The legacy text ID is retained for reliable linking.</p><input id="import-places-file" type="file" accept=".csv,text/csv"><button id="import-places-button" class="primary-button" type="button">Import places CSV</button><a href="templates/places-template.csv" download>Download template</a></section>
+        <section class="transfer-card"><h2>Import people</h2><p>Accepted answers and tags are imported from pipe-separated columns.</p><input id="import-persons-file" type="file" accept=".csv,text/csv"><button id="import-persons-button" class="primary-button" type="button">Import people CSV</button><a href="templates/persons-template.csv" download>Download template</a></section>
+        <section class="transfer-card"><h2>Large imports</h2><p>For thousands of records, use <code>tools/import_to_supabase.py</code> locally with a Supabase secret key stored only in environment variables.</p></section>
+      </div>
+      <div id="transfer-status" class="validation-panel" aria-live="polite"></div>
+    </section>
+  </main>
+  <script type="module" src="js/admin-supabase.js"></script>
+</body>
+</html>

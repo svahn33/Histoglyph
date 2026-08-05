@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A historical person guessing game with a detailed interactive world map.">
+  <title>Life & Death Map — Histoglyph</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <main class="game-shell">
+    <header class="game-header game-header--play">
+      <div>
+        <a class="play-brand" href="index.html"><span class="brand-mark">H</span><span>Histoglyph</span></a>
+        <nav class="breadcrumbs breadcrumbs--play" aria-label="Breadcrumb">
+          <a href="index.html">Home</a><span>›</span><a href="life-map.html">Life &amp; Death Map</a><span>›</span><span id="collection-breadcrumb">World History</span>
+        </nav>
+        <h1 id="collection-title">World History</h1>
+        <p id="collection-description" class="intro">Guess the person from their life dates and locations.</p>
+        <div class="play-settings-summary" aria-label="Selected game settings">
+          <span id="timing-setting-summary">Timed · 20 seconds</span>
+          <span id="place-setting-summary">Place names hidden until the answer</span>
+          <span id="round-setting-summary">5 rounds</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="secondary-button link-button" href="life-map.html">Change collection</a>
+        <button id="new-game-button" class="secondary-button" type="button">New game</button>
+      </div>
+    </header>
+
+    <p id="data-warning" class="data-warning" hidden>
+      One or both locations have not been manually verified in the data manager.
+    </p>
+
+    <section class="map-card">
+<div class="map-stage-wrapper">
+        <div id="game-map" class="offline-vector-map" aria-label="Interactive detailed world map">
+          <div class="map-loading">Loading local vector map…</div>
+        </div>
+
+        <section class="map-game-hud" aria-label="Current game status">
+          <div class="map-game-hud-item">
+            <span>Round</span>
+            <strong><span id="round-number">1</span>/<span id="round-total">5</span></strong>
+          </div>
+          <div class="map-game-hud-item">
+            <span id="score-label">Total score</span>
+            <strong id="score">0</strong>
+          </div>
+          <div id="timer-hud-item" class="map-game-hud-item map-game-hud-time">
+            <span>Time</span>
+            <strong><span id="round-timer">20.0</span>s</strong>
+          </div>
+        </section>
+
+        <div id="round-countdown" class="round-countdown" hidden aria-live="assertive">
+          <span>Round starts in</span>
+          <strong id="countdown-value">3</strong>
+        </div>
+
+        <div id="round-result" class="round-result" hidden aria-live="assertive">
+          <span id="result-status" class="round-result-status">Correct</span>
+          <strong id="result-person-name">Historical person</strong>
+          <p id="result-metric"><span id="result-points">0</span> <span id="result-unit">points</span></p>
+          <small id="result-instruction">Press Enter for the next round</small>
+        </div>
+      </div>
+
+      <div class="map-footer">
+        <div class="map-legend" aria-label="Map legend">
+          <span><i class="legend-dot birth-dot"></i> Birthplace</span>
+          <span><i class="legend-dot death-dot"></i> Place of death</span>
+          <span><i class="legend-dot combined-dot"></i> Same place</span>
+        </div>
+
+        <p class="map-credit">
+          Local vector map generated from bundled Basemap/GSHHS coastline data
+        </p>
+      </div>
+    </section>
+
+    <section class="answer-card">
+      <form id="guess-form">
+        <label for="guess-input">Enter the person's name</label>
+
+        <div class="input-row">
+          <input
+            id="guess-input"
+            name="guess"
+            type="text"
+            autocomplete="off"
+            placeholder="For example: Napoleon"
+            required
+          >
+
+          <button id="guess-button" class="primary-button" type="submit">
+            Submit guess
+          </button>
+        </div>
+      </form>
+
+      <div class="action-row">
+        <button id="reveal-button" class="text-button" type="button">
+          Reveal the answer
+        </button>
+
+        <button id="next-button" class="secondary-button" type="button" disabled>
+          Next person
+        </button>
+      </div>
+
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+  </main>
+  <script type="module" src="js/game-supabase.js"></script>
+</body>
+</html>

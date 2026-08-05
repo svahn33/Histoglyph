@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Histoglyph is a collection of interactive history games.">
+  <title>Histoglyph — History, decoded</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="site-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Histoglyph home">
+      <span class="brand-mark" aria-hidden="true">H</span>
+      <span>Histoglyph</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="#game-modes">Game modes</a>
+      <a href="admin.html">Data manager</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="home-hero">
+      <div class="home-hero-copy">
+        <p class="eyebrow">History, decoded</p>
+        <h1>Read the clues.<br>Find the person.</h1>
+        <p class="home-hero-intro">
+          Histoglyph is a growing collection of historical guessing games.
+          Explore lives, places, timelines and visual clues — one challenge at a time.
+        </p>
+        <a class="primary-button hero-button" href="#game-modes">Explore game modes</a>
+      </div>
+
+      <div class="home-map-art" aria-hidden="true">
+        <img src="assets/detailed-world-map.svg" alt="">
+        <span class="hero-map-dot hero-map-dot--one"></span>
+        <span class="hero-map-dot hero-map-dot--two"></span>
+        <span class="hero-map-line"></span>
+      </div>
+    </section>
+
+    <section id="game-modes" class="home-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Choose a challenge</p>
+          <h2>Game modes</h2>
+        </div>
+        <p>
+          Each mode can contain its own collections and themes. More modes can be added without changing the homepage structure.
+        </p>
+      </div>
+      <div id="game-mode-grid" class="mode-grid"></div>
+    </section>
+
+    <section class="site-callout">
+      <div>
+        <p class="eyebrow">Built to grow</p>
+        <h2>One home for many historical games</h2>
+      </div>
+      <p>
+        Histoglyph is now organised as a platform: homepage → game mode → collection → game.
+        Future categories such as American Presidents can be added as new collections.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand brand--small" href="index.html"><span class="brand-mark">H</span><span>Histoglyph</span></a>
+    <p>Interactive history games.</p>
+  </footer>
+
+  <script defer src="js/home.bundle.js"></script>
+</body>
+</html>

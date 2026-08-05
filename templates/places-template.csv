@@ -1,0 +1,2 @@
+id,name,country,latitude,longitude,precision,verification_status,source,source_id,notes
+place-example,Example City,Example Country,0,0,locality,automatically_matched,Wikidata,Q123,
