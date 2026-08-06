@@ -15,7 +15,6 @@
     </a>
     <nav class="site-nav" aria-label="Main navigation">
       <a href="#game-modes">Game modes</a>
-      <a href="admin.html">Data manager</a>
     </nav>
   </header>
 
@@ -33,21 +32,20 @@
 
       <div class="home-map-art" aria-hidden="true">
         <img src="assets/detailed-world-map.svg" alt="">
+        <svg class="hero-map-connection" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M 29 53 C 35 43, 45 34, 53 29"></path>
+        </svg>
         <span class="hero-map-dot hero-map-dot--one"></span>
         <span class="hero-map-dot hero-map-dot--two"></span>
-        <span class="hero-map-line"></span>
       </div>
     </section>
 
     <section id="game-modes" class="home-section">
-      <div class="section-heading">
+      <div class="section-heading section-heading--compact">
         <div>
           <p class="eyebrow">Choose a challenge</p>
           <h2>Game modes</h2>
         </div>
-        <p>
-          Each mode can contain its own collections and themes. More modes can be added without changing the homepage structure.
-        </p>
       </div>
       <div id="game-mode-grid" class="mode-grid"></div>
     </section>

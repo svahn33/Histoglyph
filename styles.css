@@ -960,19 +960,25 @@ input { padding: 13px 14px; }
   border: 3px solid white;
   border-radius: 50%;
   box-shadow: 0 3px 14px rgba(0,0,0,.3);
+  transform: translate(-50%, -50%);
 }
 .hero-map-dot--one { top: 29%; left: 53%; background: var(--birth); }
 .hero-map-dot--two { top: 53%; left: 29%; background: var(--death); }
-.hero-map-line {
+.hero-map-connection {
   position: absolute;
   z-index: 1;
-  top: 31%;
-  left: 30%;
-  width: 31%;
-  height: 2px;
-  background: rgba(29,64,51,.55);
-  transform: rotate(-31deg);
-  transform-origin: left center;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.hero-map-connection path {
+  fill: none;
+  stroke: rgba(29,64,51,.58);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .home-section,
@@ -990,6 +996,8 @@ input { padding: 13px 14px; }
   align-items: end;
   margin-bottom: 24px;
 }
+
+.section-heading--compact { grid-template-columns: 1fr; }
 .section-heading h2,
 .site-callout h2,
 .collection-section-heading h2 {
