@@ -146,9 +146,14 @@ function makeMarker(type) {
 
   const dot = document.createElement('span');
   dot.className = 'offline-map-marker-dot';
+  marker.append(dot);
+  return marker;
+}
 
+function makeMarkerLabel(type) {
   const label = document.createElement('span');
-  label.className = 'offline-map-marker-label';
+  label.className = `offline-map-marker-label offline-map-marker-label--${type}`;
+  label.setAttribute('aria-hidden', 'true');
 
   const year = document.createElement('span');
   year.className = 'offline-map-marker-year';
@@ -158,8 +163,7 @@ function makeMarker(type) {
   place.hidden = true;
 
   label.append(year, place);
-  marker.append(dot, label);
-  return marker;
+  return label;
 }
 
 export class DetailedWorldMap {
@@ -192,6 +196,7 @@ export class DetailedWorldMap {
         <img class="offline-map-image" alt="Detailed vector world map with white land and grey ocean" draggable="false" decoding="sync">
         <div class="offline-map-marker-layer"></div>
       </div>
+      <div class="offline-map-label-layer" aria-hidden="true"></div>
       <div class="offline-map-controls" aria-label="Map zoom controls">
         <button type="button" data-offline-zoom="in" aria-label="Zoom in">+</button>
         <button type="button" data-offline-zoom="out" aria-label="Zoom out">−</button>
@@ -202,6 +207,7 @@ export class DetailedWorldMap {
     this.scene = this.container.querySelector('.offline-map-scene');
     this.image = this.container.querySelector('.offline-map-image');
     this.markerLayer = this.container.querySelector('.offline-map-marker-layer');
+    this.labelLayer = this.container.querySelector('.offline-map-label-layer');
 
     const mapAssetUrl = new URL('assets/detailed-world-map.svg', document.baseURI).href;
     this.ready = new Promise((resolve, reject) => {
@@ -358,7 +364,25 @@ export class DetailedWorldMap {
     this.markerLayer.querySelectorAll('.offline-map-marker').forEach(marker => {
       marker.style.setProperty('--marker-inverse-scale', inverseScale);
     });
+    this.updateLabelAnchors();
     this.scheduleLabelLayout();
+  }
+
+  getScreenPoint(position) {
+    const { width, height, translateX, translateY } = this.getTransformPixels();
+    return {
+      x: translateX + (position.x / 100) * width * this.scale,
+      y: translateY + (position.y / 100) * height * this.scale
+    };
+  }
+
+  updateLabelAnchors() {
+    for (const entry of this.markers) {
+      if (!entry.label) continue;
+      const point = this.getScreenPoint(entry.position);
+      entry.label.style.left = `${Math.round(point.x)}px`;
+      entry.label.style.top = `${Math.round(point.y)}px`;
+    }
   }
 
   scheduleLabelLayout() {
@@ -411,27 +435,25 @@ export class DetailedWorldMap {
   }
 
   layoutMarkerLabels() {
-    const entries = [...this.markerLayer.querySelectorAll(
-      ".offline-map-marker--birth, .offline-map-marker--death, .offline-map-marker--combined"
-    )]
-      .map(marker => ({ marker, label: marker.querySelector(".offline-map-marker-label") }))
+    const entries = this.markers
       .filter(entry => entry.label && entry.label.offsetParent !== null);
 
     if (entries.length === 0) return;
+    this.updateLabelAnchors();
     const containerRect = this.container.getBoundingClientRect();
 
     if (entries.length === 1) {
       let bestCandidate = this.labelCandidates(entries[0].marker)[0];
       let bestScore = Number.POSITIVE_INFINITY;
       for (const candidate of this.labelCandidates(entries[0].marker)) {
-        entries[0].marker.dataset.labelPosition = candidate;
+        entries[0].label.dataset.labelPosition = candidate;
         const score = this.labelLayoutScore([entries[0].label], containerRect);
         if (score < bestScore) {
           bestScore = score;
           bestCandidate = candidate;
         }
       }
-      entries[0].marker.dataset.labelPosition = bestCandidate;
+      entries[0].label.dataset.labelPosition = bestCandidate;
       return;
     }
 
@@ -441,9 +463,9 @@ export class DetailedWorldMap {
     let bestScore = Number.POSITIVE_INFINITY;
 
     for (const firstCandidate of this.labelCandidates(first.marker)) {
-      first.marker.dataset.labelPosition = firstCandidate;
+      first.label.dataset.labelPosition = firstCandidate;
       for (const secondCandidate of this.labelCandidates(second.marker)) {
-        second.marker.dataset.labelPosition = secondCandidate;
+        second.label.dataset.labelPosition = secondCandidate;
         const score = this.labelLayoutScore([first.label, second.label], containerRect);
         if (score < bestScore) {
           bestScore = score;
@@ -454,8 +476,8 @@ export class DetailedWorldMap {
       if (bestScore === 0) break;
     }
 
-    first.marker.dataset.labelPosition = best[0];
-    second.marker.dataset.labelPosition = best[1];
+    first.label.dataset.labelPosition = best[0];
+    second.label.dataset.labelPosition = best[1];
   }
 
   zoomAt(pointerX, pointerY, requestedScale) {
@@ -488,10 +510,11 @@ export class DetailedWorldMap {
   }
 
   clearMarkers() {
+    this.markers.forEach(entry => {
+      entry.marker?.remove();
+      entry.label?.remove();
+    });
     this.markers = [];
-    this.markerLayer
-      .querySelectorAll('.offline-map-marker--birth, .offline-map-marker--death, .offline-map-marker--combined')
-      .forEach(marker => marker.remove());
   }
 
   async setGameLocations(locations) {
@@ -525,36 +548,38 @@ export class DetailedWorldMap {
     displayLocations.forEach(location => {
       const position = projectRobinson(location.latitude, location.longitude);
       const marker = makeMarker(location.type);
+      const label = makeMarkerLabel(location.type);
       marker.style.left = `${position.x}%`;
       marker.style.top = `${position.y}%`;
       marker.style.setProperty('--marker-inverse-scale', 1 / this.scale);
       marker.title = location.label || '';
 
-      marker.dataset.labelPosition = location.type === "death"
+      label.dataset.labelPosition = location.type === "death"
         ? "bottom-right"
         : "top-right";
 
-      const yearLabel = marker.querySelector('.offline-map-marker-year');
+      const yearLabel = label.querySelector('.offline-map-marker-year');
       if (yearLabel) yearLabel.textContent = location.year || '';
 
-      const placeLabel = marker.querySelector('.offline-map-marker-place');
+      const placeLabel = label.querySelector('.offline-map-marker-place');
       if (placeLabel) {
         placeLabel.textContent = location.placeName || '';
         placeLabel.hidden = true;
       }
 
       this.markerLayer.append(marker);
-      this.markers.push({ marker, location, position });
+      this.labelLayer.append(label);
+      this.markers.push({ marker, label, location, position });
     });
+    this.updateLabelAnchors();
     this.scheduleLabelLayout();
   }
 
   setPlaceNamesVisible(visible) {
-    this.markerLayer
-      .querySelectorAll('.offline-map-marker-place')
-      .forEach(label => {
-        label.hidden = !visible || !label.textContent.trim();
-      });
+    this.markers.forEach(entry => {
+      const label = entry.label?.querySelector('.offline-map-marker-place');
+      if (label) label.hidden = !visible || !label.textContent.trim();
+    });
     this.scheduleLabelLayout();
   }
 
@@ -588,8 +613,13 @@ export class DetailedWorldMap {
   }
 
   setView(centerX, centerY, scale, animate = true) {
-    if (animate) this.scene.classList.add('offline-map-scene--animate');
-    else this.scene.classList.remove('offline-map-scene--animate');
+    if (animate) {
+      this.scene.classList.add('offline-map-scene--animate');
+      this.labelLayer.classList.add('offline-map-label-layer--animate');
+    } else {
+      this.scene.classList.remove('offline-map-scene--animate');
+      this.labelLayer.classList.remove('offline-map-label-layer--animate');
+    }
 
     this.centerX = clamp(centerX, 0, 1);
     this.centerY = clamp(centerY, 0, 1);
@@ -597,7 +627,11 @@ export class DetailedWorldMap {
     this.applyTransform();
 
     if (animate) {
-      window.setTimeout(() => this.scene.classList.remove('offline-map-scene--animate'), 700);
+      window.setTimeout(() => {
+        this.scene.classList.remove('offline-map-scene--animate');
+        this.labelLayer.classList.remove('offline-map-label-layer--animate');
+        this.scheduleLabelLayout();
+      }, 700);
     }
   }
 

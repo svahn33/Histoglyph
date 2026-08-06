@@ -962,8 +962,8 @@ input { padding: 13px 14px; }
   box-shadow: 0 3px 14px rgba(0,0,0,.3);
   transform: translate(-50%, -50%);
 }
-.hero-map-dot--one { top: 29%; left: 53%; background: var(--birth); }
-.hero-map-dot--two { top: 53%; left: 29%; background: var(--death); }
+.hero-map-dot--one { top: 31.37%; left: 57.58%; background: var(--birth); }
+.hero-map-dot--two { top: 59.79%; left: 26.43%; background: var(--death); }
 .hero-map-connection {
   position: absolute;
   z-index: 1;
@@ -1501,4 +1501,107 @@ input { padding: 13px 14px; }
 .offline-map-marker--death[data-label-position$="left"] .offline-map-marker-label,
 .offline-map-marker--death[data-label-position="left"] .offline-map-marker-label {
   border-right-color: var(--death);
+}
+
+
+/* V20: labels are rendered in a viewport-level layer instead of inside the
+   zoomed map scene. This keeps text crisp at every zoom level. */
+.offline-map-label-layer {
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.offline-map-label-layer--animate .offline-map-marker-label {
+  transition: left 650ms cubic-bezier(0.22, 1, 0.36, 1), top 650ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.offline-map-label-layer .offline-map-marker-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  transform: none;
+  transform-origin: top left;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  backface-visibility: hidden;
+  will-change: left, top;
+}
+
+.offline-map-marker-label[data-label-position="top-right"] {
+  transform: translate(18px, calc(-100% - 12px));
+}
+.offline-map-marker-label[data-label-position="top-left"] {
+  transform: translate(calc(-100% - 18px), calc(-100% - 12px));
+}
+.offline-map-marker-label[data-label-position="bottom-right"] {
+  transform: translate(18px, 12px);
+}
+.offline-map-marker-label[data-label-position="bottom-left"] {
+  transform: translate(calc(-100% - 18px), 12px);
+}
+.offline-map-marker-label[data-label-position="right"] {
+  transform: translate(19px, -50%);
+}
+.offline-map-marker-label[data-label-position="left"] {
+  transform: translate(calc(-100% - 19px), -50%);
+}
+.offline-map-marker-label[data-label-position="top"] {
+  transform: translate(-50%, calc(-100% - 18px));
+}
+.offline-map-marker-label[data-label-position="bottom"] {
+  transform: translate(-50%, 18px);
+}
+
+.offline-map-marker-label--birth {
+  border-left: 4px solid var(--birth);
+}
+.offline-map-marker-label--death {
+  border-left: 4px solid var(--death);
+}
+.offline-map-marker-label--combined {
+  border-left: 0;
+  padding-left: 11px;
+}
+.offline-map-marker-label--combined::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  border-radius: 8px 0 0 8px;
+  background: linear-gradient(180deg, var(--birth) 0 50%, var(--death) 50% 100%);
+}
+
+.offline-map-marker-label[data-label-position$="left"],
+.offline-map-marker-label[data-label-position="left"] {
+  border-right-width: 4px;
+  border-left-width: 1px;
+}
+.offline-map-marker-label--birth[data-label-position$="left"],
+.offline-map-marker-label--birth[data-label-position="left"] {
+  border-right-color: var(--birth);
+}
+.offline-map-marker-label--death[data-label-position$="left"],
+.offline-map-marker-label--death[data-label-position="left"] {
+  border-right-color: var(--death);
+}
+.offline-map-marker-label--combined[data-label-position$="left"],
+.offline-map-marker-label--combined[data-label-position="left"] {
+  padding-right: 11px;
+  padding-left: 8px;
+  border-right: 0;
+}
+.offline-map-marker-label--combined[data-label-position$="left"]::before,
+.offline-map-marker-label--combined[data-label-position="left"]::before {
+  right: 0;
+  left: auto;
+  border-radius: 0 8px 8px 0;
 }
