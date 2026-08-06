@@ -87,6 +87,21 @@
           </span>
           <input id="setting-rounds" class="game-setting-number" type="number" min="1" max="100" step="1" value="5" inputmode="numeric">
         </label>
+
+        <label class="game-setting-option game-setting-option--select" for="setting-difficulty">
+          <span class="game-setting-copy">
+            <strong>Difficulty</strong>
+            <small>Filter using each person's Difficulty field in Data manager. Difficulty is not read from tags.</small>
+          </span>
+          <select id="setting-difficulty" class="game-setting-select">
+            <option value="all" selected>All difficulties</option>
+            <option value="1">1 — Easy</option>
+            <option value="2">2 — Fairly easy</option>
+            <option value="3">3 — Medium</option>
+            <option value="4">4 — Hard</option>
+            <option value="5">5 — Very hard</option>
+          </select>
+        </label>
       </div>
 
       <div class="game-settings-note" id="game-settings-note">

@@ -184,6 +184,7 @@ export class DetailedWorldMap {
     this.didMove = false;
     this.activePointers = new Map();
     this.pinchStart = null;
+    this.labelLayoutFrame = null;
 
     this.container.classList.add('offline-map');
     this.container.innerHTML = `
@@ -232,6 +233,7 @@ export class DetailedWorldMap {
     this.setupInteractions();
     this.resizeObserver = new ResizeObserver(() => this.applyTransform());
     this.resizeObserver.observe(this.container);
+    this.scene.addEventListener("transitionend", () => this.scheduleLabelLayout());
     this.applyTransform();
   }
 
@@ -321,6 +323,7 @@ export class DetailedWorldMap {
         this.pointerMode = null;
         this.pointerStart = null;
         this.pinchStart = null;
+    this.labelLayoutFrame = null;
 
         if (this.options.editable && !wasMoved && !event.target.closest('.offline-map-controls')) {
           const location = this.clientPointToLocation(event.clientX, event.clientY);
@@ -355,6 +358,104 @@ export class DetailedWorldMap {
     this.markerLayer.querySelectorAll('.offline-map-marker').forEach(marker => {
       marker.style.setProperty('--marker-inverse-scale', inverseScale);
     });
+    this.scheduleLabelLayout();
+  }
+
+  scheduleLabelLayout() {
+    if (this.labelLayoutFrame !== null) return;
+    this.labelLayoutFrame = requestAnimationFrame(() => {
+      this.labelLayoutFrame = null;
+      this.layoutMarkerLabels();
+    });
+  }
+
+  labelCandidates(marker) {
+    if (marker.classList.contains("offline-map-marker--birth")) {
+      return ["top-right", "top-left", "bottom-right", "bottom-left", "right", "left", "top", "bottom"];
+    }
+    if (marker.classList.contains("offline-map-marker--death")) {
+      return ["bottom-right", "bottom-left", "top-right", "top-left", "right", "left", "bottom", "top"];
+    }
+    return ["top-right", "top-left", "bottom-right", "bottom-left", "right", "left", "top", "bottom"];
+  }
+
+  expandedIntersectionArea(first, second, gap = 7) {
+    const left = Math.max(first.left - gap, second.left - gap);
+    const right = Math.min(first.right + gap, second.right + gap);
+    const top = Math.max(first.top - gap, second.top - gap);
+    const bottom = Math.min(first.bottom + gap, second.bottom + gap);
+    return Math.max(0, right - left) * Math.max(0, bottom - top);
+  }
+
+  labelLayoutScore(labels, containerRect) {
+    let score = 0;
+    for (const label of labels) {
+      const rect = label.getBoundingClientRect();
+      const overflow =
+        Math.max(0, containerRect.left + 6 - rect.left) +
+        Math.max(0, rect.right - containerRect.right + 6) +
+        Math.max(0, containerRect.top + 6 - rect.top) +
+        Math.max(0, rect.bottom - containerRect.bottom + 6);
+      score += overflow * 50_000;
+    }
+
+    for (let firstIndex = 0; firstIndex < labels.length; firstIndex += 1) {
+      const firstRect = labels[firstIndex].getBoundingClientRect();
+      for (let secondIndex = firstIndex + 1; secondIndex < labels.length; secondIndex += 1) {
+        const secondRect = labels[secondIndex].getBoundingClientRect();
+        const overlapArea = this.expandedIntersectionArea(firstRect, secondRect);
+        if (overlapArea > 0) score += 1_000_000 + overlapArea * 100;
+      }
+    }
+    return score;
+  }
+
+  layoutMarkerLabels() {
+    const entries = [...this.markerLayer.querySelectorAll(
+      ".offline-map-marker--birth, .offline-map-marker--death, .offline-map-marker--combined"
+    )]
+      .map(marker => ({ marker, label: marker.querySelector(".offline-map-marker-label") }))
+      .filter(entry => entry.label && entry.label.offsetParent !== null);
+
+    if (entries.length === 0) return;
+    const containerRect = this.container.getBoundingClientRect();
+
+    if (entries.length === 1) {
+      let bestCandidate = this.labelCandidates(entries[0].marker)[0];
+      let bestScore = Number.POSITIVE_INFINITY;
+      for (const candidate of this.labelCandidates(entries[0].marker)) {
+        entries[0].marker.dataset.labelPosition = candidate;
+        const score = this.labelLayoutScore([entries[0].label], containerRect);
+        if (score < bestScore) {
+          bestScore = score;
+          bestCandidate = candidate;
+        }
+      }
+      entries[0].marker.dataset.labelPosition = bestCandidate;
+      return;
+    }
+
+    const first = entries[0];
+    const second = entries[1];
+    let best = [this.labelCandidates(first.marker)[0], this.labelCandidates(second.marker)[0]];
+    let bestScore = Number.POSITIVE_INFINITY;
+
+    for (const firstCandidate of this.labelCandidates(first.marker)) {
+      first.marker.dataset.labelPosition = firstCandidate;
+      for (const secondCandidate of this.labelCandidates(second.marker)) {
+        second.marker.dataset.labelPosition = secondCandidate;
+        const score = this.labelLayoutScore([first.label, second.label], containerRect);
+        if (score < bestScore) {
+          bestScore = score;
+          best = [firstCandidate, secondCandidate];
+          if (score === 0) break;
+        }
+      }
+      if (bestScore === 0) break;
+    }
+
+    first.marker.dataset.labelPosition = best[0];
+    second.marker.dataset.labelPosition = best[1];
   }
 
   zoomAt(pointerX, pointerY, requestedScale) {
@@ -429,9 +530,9 @@ export class DetailedWorldMap {
       marker.style.setProperty('--marker-inverse-scale', 1 / this.scale);
       marker.title = location.label || '';
 
-      if (position.x > 76) {
-        marker.classList.add('offline-map-marker--label-left');
-      }
+      marker.dataset.labelPosition = location.type === "death"
+        ? "bottom-right"
+        : "top-right";
 
       const yearLabel = marker.querySelector('.offline-map-marker-year');
       if (yearLabel) yearLabel.textContent = location.year || '';
@@ -445,6 +546,7 @@ export class DetailedWorldMap {
       this.markerLayer.append(marker);
       this.markers.push({ marker, location, position });
     });
+    this.scheduleLabelLayout();
   }
 
   setPlaceNamesVisible(visible) {
@@ -453,6 +555,7 @@ export class DetailedWorldMap {
       .forEach(label => {
         label.hidden = !visible || !label.textContent.trim();
       });
+    this.scheduleLabelLayout();
   }
 
   async fitToLocations(locations, animate = true) {

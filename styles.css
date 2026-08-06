@@ -1410,3 +1410,87 @@ input { padding: 13px 14px; }
 
 /* Supabase administration and setup */
 .auth-gate{min-height:100vh;display:grid;place-items:center;padding:24px}.auth-gate[hidden]{display:none}.auth-card{width:min(440px,100%);display:grid;gap:14px;padding:28px;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:var(--shadow)}.auth-card h1{font-size:2.4rem}.auth-card label{display:grid;gap:6px;font-weight:750}.admin-header-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.pagination-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;color:var(--muted);font-size:.86rem}.setup-check-list{display:grid;gap:10px;margin-top:18px}.setup-check-row{display:grid;gap:4px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong)}.setup-check-row span{color:var(--muted);font-size:.9rem}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+
+/* V18: difficulty selector in the pre-game dialog */
+.game-setting-select {
+  width: min(190px, 42vw);
+  min-width: 155px;
+  padding: 10px 34px 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: white;
+  font-weight: 750;
+}
+
+@media (max-width: 640px) {
+  .game-setting-option--select {
+    align-items: center;
+  }
+  .game-setting-select {
+    width: 155px;
+    min-width: 135px;
+  }
+}
+
+/* V18: collision-aware map labels. JavaScript tries several positions and
+   selects a combination that stays inside the map and does not overlap. */
+.offline-map-marker-label {
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+}
+
+.offline-map-marker[data-label-position="top-right"] .offline-map-marker-label {
+  bottom: 12px;
+  left: 18px;
+}
+.offline-map-marker[data-label-position="top-left"] .offline-map-marker-label {
+  right: 18px;
+  bottom: 12px;
+}
+.offline-map-marker[data-label-position="bottom-right"] .offline-map-marker-label {
+  top: 12px;
+  left: 18px;
+}
+.offline-map-marker[data-label-position="bottom-left"] .offline-map-marker-label {
+  top: 12px;
+  right: 18px;
+}
+.offline-map-marker[data-label-position="right"] .offline-map-marker-label {
+  top: 50%;
+  left: 19px;
+  transform: translateY(-50%);
+}
+.offline-map-marker[data-label-position="left"] .offline-map-marker-label {
+  top: 50%;
+  right: 19px;
+  transform: translateY(-50%);
+}
+.offline-map-marker[data-label-position="top"] .offline-map-marker-label {
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.offline-map-marker[data-label-position="bottom"] .offline-map-marker-label {
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Accent follows the side on which the label is placed. */
+.offline-map-marker[data-label-position$="left"] .offline-map-marker-label,
+.offline-map-marker[data-label-position="left"] .offline-map-marker-label {
+  border-right-width: 4px;
+  border-left-width: 1px;
+}
+.offline-map-marker--birth[data-label-position$="left"] .offline-map-marker-label,
+.offline-map-marker--birth[data-label-position="left"] .offline-map-marker-label {
+  border-right-color: var(--birth);
+}
+.offline-map-marker--death[data-label-position$="left"] .offline-map-marker-label,
+.offline-map-marker--death[data-label-position="left"] .offline-map-marker-label {
+  border-right-color: var(--death);
+}

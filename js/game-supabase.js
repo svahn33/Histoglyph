@@ -11,6 +11,10 @@ const collectionSlug = parameters.get("collection") || "world-history";
 const timedMode = parameters.get("timed") !== "0";
 const showPlacesInitially = parameters.get("showPlaces") === "1";
 const requestedRounds = Math.max(1, Math.min(100, Number.parseInt(parameters.get("rounds"), 10) || 5));
+const requestedDifficultyValue = Number.parseInt(parameters.get("difficulty"), 10);
+const difficultyFilter = Number.isInteger(requestedDifficultyValue) && requestedDifficultyValue >= 1 && requestedDifficultyValue <= 5
+  ? requestedDifficultyValue
+  : null;
 
 const el = id => document.querySelector(`#${id}`);
 const roundNumberElement = el("round-number");
@@ -22,6 +26,7 @@ const timerHudItem = el("timer-hud-item");
 const timingSettingSummary = el("timing-setting-summary");
 const placeSettingSummary = el("place-setting-summary");
 const roundSettingSummary = el("round-setting-summary");
+const difficultySettingSummary = el("difficulty-setting-summary");
 const countdownOverlay = el("round-countdown");
 const countdownValue = el("countdown-value");
 const resultOverlay = el("round-result");
@@ -248,7 +253,8 @@ async function startNewGame() {
     p_collection_slug: collectionSlug,
     p_round_count: requestedRounds,
     p_timed: timedMode,
-    p_show_places: showPlacesInitially
+    p_show_places: showPlacesInitially,
+    p_difficulty: difficultyFilter
   });
   if (error) return handleError(error);
   sessionId = data.session_id;
@@ -321,6 +327,9 @@ timerHudItem.hidden = !timedMode;
 timingSettingSummary.textContent = timedMode ? "Timed · 20 seconds" : "Untimed · correct answers only";
 placeSettingSummary.textContent = showPlacesInitially ? "Place names shown from the start" : "Place names hidden until the answer";
 roundSettingSummary.textContent = `${requestedRounds} rounds`;
+difficultySettingSummary.textContent = difficultyFilter === null
+  ? "All difficulties"
+  : `Difficulty ${difficultyFilter}`;
 scoreLabelElement.textContent = timedMode ? "Total score" : "Correct";
 document.body.classList.toggle("untimed-game", !timedMode);
 

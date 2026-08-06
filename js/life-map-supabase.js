@@ -11,6 +11,7 @@ const settingsDescription = document.querySelector("#game-settings-description")
 const timedInput = document.querySelector("#setting-timed");
 const showPlacesInput = document.querySelector("#setting-show-places");
 const roundsInput = document.querySelector("#setting-rounds");
+const difficultyInput = document.querySelector("#setting-difficulty");
 const settingsNote = document.querySelector("#game-settings-note");
 const closeSettingsButton = document.querySelector("#close-game-settings");
 const cancelSettingsButton = document.querySelector("#cancel-game-settings");
@@ -23,6 +24,7 @@ function openGameSettings(collection) {
   timedInput.checked = true;
   showPlacesInput.checked = false;
   roundsInput.value = String(collection.default_rounds || 5);
+  difficultyInput.value = "all";
   updateSettingsNote();
   settingsDialog.showModal();
 }
@@ -77,11 +79,22 @@ function roundCount() {
   const value = Number.parseInt(roundsInput.value, 10);
   return Number.isFinite(value) ? Math.max(1, Math.min(100, value)) : 5;
 }
+function selectedDifficulty() {
+  const value = Number.parseInt(difficultyInput.value, 10);
+  return Number.isInteger(value) && value >= 1 && value <= 5 ? value : null;
+}
+function difficultyLabel() {
+  const difficulty = selectedDifficulty();
+  return difficulty === null
+    ? "all difficulties"
+    : `difficulty ${difficulty}`;
+}
 function updateSettingsNote() {
-  const rounds = roundCount(); roundsInput.value = String(rounds);
+  const rounds = roundCount();
+  roundsInput.value = String(rounds);
   settingsNote.textContent = timedInput.checked
-    ? `${rounds} rounds · three-second preview · 20 seconds to answer · server-validated points.`
-    : `${rounds} rounds · no timer · the result is shown as correct answers.`;
+    ? `${rounds} rounds · ${difficultyLabel()} · three-second preview · 20 seconds to answer · server-validated points.`
+    : `${rounds} rounds · ${difficultyLabel()} · no timer · the result is shown as correct answers.`;
 }
 settingsForm.addEventListener("submit", event => {
   event.preventDefault();
@@ -89,12 +102,14 @@ settingsForm.addEventListener("submit", event => {
     collection: selectedCollectionInput.value,
     timed: timedInput.checked ? "1" : "0",
     showPlaces: showPlacesInput.checked ? "1" : "0",
-    rounds: String(roundCount())
+    rounds: String(roundCount()),
+    difficulty: selectedDifficulty() === null ? "all" : String(selectedDifficulty())
   });
   location.href = `play.html?${params}`;
 });
 timedInput.addEventListener("change", updateSettingsNote);
 roundsInput.addEventListener("input", updateSettingsNote);
+difficultyInput.addEventListener("change", updateSettingsNote);
 closeSettingsButton.addEventListener("click", closeGameSettings);
 cancelSettingsButton.addEventListener("click", closeGameSettings);
 
