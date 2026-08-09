@@ -89,6 +89,7 @@
     <section class="answer-card">
       <form id="guess-form">
         <label for="guess-input">Enter the person's name</label>
+        <p class="guess-help">Three letters from the first name and three from the surname are enough. Example: <strong>Ado Hit</strong>. A wrong guess does not end the round.</p>
 
         <div class="input-row">
           <input
@@ -96,7 +97,7 @@
             name="guess"
             type="text"
             autocomplete="off"
-            placeholder="For example: Napoleon"
+            placeholder="For example: Ado Hit"
             required
           >
 
@@ -108,7 +109,7 @@
 
       <div class="action-row">
         <button id="reveal-button" class="text-button" type="button">
-          Reveal the answer
+          I don't know
         </button>
 
         <button id="next-button" class="secondary-button" type="button" disabled>

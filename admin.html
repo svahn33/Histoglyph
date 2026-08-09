@@ -86,7 +86,28 @@
     <section id="tab-persons" class="tab-panel" hidden>
       <div class="admin-layout">
         <aside class="record-browser">
-          <label>Search people<input id="person-search" type="search" placeholder="Name, period or legacy ID"></label>
+          <div class="browser-toolbar">
+            <label>Search people<input id="person-search" type="search" placeholder="Name, period or legacy ID"></label>
+            <div class="person-filter-grid">
+              <label>Difficulty
+                <select id="person-difficulty-filter">
+                  <option value="all">All difficulties</option>
+                  <option value="1">1 — Easy</option>
+                  <option value="2">2</option>
+                  <option value="3">3 — Medium</option>
+                  <option value="4">4</option>
+                  <option value="5">5 — Hard</option>
+                </select>
+              </label>
+              <label>Verification
+                <select id="person-verification-filter">
+                  <option value="all">All</option>
+                  <option value="verified">Verified</option>
+                  <option value="not_verified">Not verified</option>
+                </select>
+              </label>
+            </div>
+          </div>
           <div class="browser-actions"><button id="new-person-button" class="primary-button" type="button">New person</button></div>
           <div id="person-list" class="record-list"></div>
           <div class="pagination-row"><button id="person-prev" type="button" class="secondary-button">Previous</button><span id="person-page-label">Page 1</span><button id="person-next" type="button" class="secondary-button">Next</button></div>

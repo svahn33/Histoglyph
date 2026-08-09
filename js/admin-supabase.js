@@ -185,11 +185,16 @@ async function nextReview() {
 }
 async function loadPersons() {
   const query = $("person-search").value.trim();
-  let request = supabase.from("persons").select("id,name,period,published,verification_status,birth_place:places!persons_birth_place_id_fkey(name),death_place:places!persons_death_place_id_fkey(name)", { count: "exact" }).order("name").range(state.personPage * PAGE_SIZE, state.personPage * PAGE_SIZE + PAGE_SIZE - 1);
+  const difficulty = $("person-difficulty-filter").value;
+  const verification = $("person-verification-filter").value;
+  let request = supabase.from("persons").select("id,name,period,difficulty,published,verification_status,birth_place:places!persons_birth_place_id_fkey(name),death_place:places!persons_death_place_id_fkey(name)", { count: "exact" }).order("name").range(state.personPage * PAGE_SIZE, state.personPage * PAGE_SIZE + PAGE_SIZE - 1);
   if (query) request = request.ilike("search_text", `%${query}%`);
+  if (difficulty !== "all") request = request.eq("difficulty", Number(difficulty));
+  if (verification === "verified") request = request.eq("verification_status", "manually_verified");
+  if (verification === "not_verified") request = request.neq("verification_status", "manually_verified");
   const { data, count, error } = await request; if (error) return message($("person-validation"), error.message, "error");
   state.personCount = count || 0;
-  $("person-list").replaceChildren(...(data || []).map(person => recordButton(person.name, `${person.birth_place?.name || "?"} → ${person.death_place?.name || "?"}${person.published ? " · published" : ""}`, state.selectedPerson?.id === person.id, () => loadPerson(person.id), person.verification_status)));
+  $("person-list").replaceChildren(...(data || []).map(person => recordButton(person.name, `${person.birth_place?.name || "?"} → ${person.death_place?.name || "?"} · difficulty ${person.difficulty}${person.published ? " · published" : ""}`, state.selectedPerson?.id === person.id, () => loadPerson(person.id), person.verification_status)));
   $("person-page-label").textContent = `Page ${state.personPage + 1} · ${state.personCount} results`;
   $("person-prev").disabled = state.personPage === 0; $("person-next").disabled = (state.personPage + 1) * PAGE_SIZE >= state.personCount;
 }
@@ -315,6 +320,8 @@ $("admin-sign-out").addEventListener("click",async()=>{await supabase.auth.signO
 document.querySelectorAll(".tab-button").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
 $("place-search").addEventListener("input",()=>debounce(()=>{state.placePage=0;loadPlaces();})); $("place-status-filter").addEventListener("change",()=>{state.placePage=0;loadPlaces();});
 $("person-search").addEventListener("input",()=>debounce(()=>{state.personPage=0;loadPersons();}));
+$("person-difficulty-filter").addEventListener("change",()=>{state.personPage=0;loadPersons();});
+$("person-verification-filter").addEventListener("change",()=>{state.personPage=0;loadPersons();});
 $("place-prev").addEventListener("click",()=>{state.placePage=Math.max(0,state.placePage-1);loadPlaces();}); $("place-next").addEventListener("click",()=>{state.placePage++;loadPlaces();});
 $("person-prev").addEventListener("click",()=>{state.personPage=Math.max(0,state.personPage-1);loadPersons();}); $("person-next").addEventListener("click",()=>{state.personPage++;loadPersons();});
 $("new-place-button").addEventListener("click",clearPlace); $("next-review-button").addEventListener("click",nextReview); $("place-form").addEventListener("submit",savePlace); $("delete-place-button").addEventListener("click",deletePlace);

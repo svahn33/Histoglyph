@@ -192,7 +192,7 @@ function statusFromOutcome(outcome) {
     correct: ["Correct", "correct"],
     incorrect: ["Incorrect", "incorrect"],
     timeout: ["Time is up", "incorrect"],
-    revealed: ["Answer revealed", "neutral"]
+    revealed: ["Answer", "neutral"]
   }[outcome] || ["Round complete", "neutral"];
 }
 function showRoundResult(result) {
@@ -308,13 +308,23 @@ async function startNewGame() {
 }
 async function submitGuess() {
   if (roundFinished || !sessionId) return;
+  const guess = guessInput.value.trim();
+  if (!guess) return;
   setControls(false);
   const { data, error } = await supabase.rpc("submit_life_map_guess", {
     p_session_id: sessionId,
     p_round_number: currentRound,
-    p_guess: guessInput.value
+    p_guess: guess
   });
   if (error) { setControls(true); return handleError(error); }
+  if (roundFinished) return;
+  if (data?.outcome === "try_again") {
+    setFeedback("Not correct — keep trying, or choose I don't know.", "incorrect");
+    setControls(true);
+    guessInput.focus();
+    guessInput.select();
+    return;
+  }
   await finishRound(data);
 }
 async function revealAnswer() {

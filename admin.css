@@ -68,6 +68,21 @@
 .record-browser label, .editor-panel label, .transfer-card label { display: grid; gap: 6px; font-weight: 750; }
 .browser-toolbar { display: grid; gap: 12px; }
 .browser-toolbar select { min-width: 0; }
+.person-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.person-filter-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .person-filter-grid { grid-template-columns: 1fr; }
+}
+
 
 .browser-actions,
 .form-actions,
