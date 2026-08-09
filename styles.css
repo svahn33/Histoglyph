@@ -955,43 +955,40 @@ input { padding: 13px 14px; }
   overflow: hidden;
   background: #c8c8c8;
 }
-.home-map-art img {
+
+/* Keep the world map and its decorative route in one SVG coordinate system.
+   This prevents the dots from drifting away from the land when the hero crops. */
+.hero-map-visual {
   position: absolute;
   width: 145%;
-  max-width: none;
   height: 100%;
   left: -27%;
-  object-fit: cover;
+  top: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.hero-map-visual image {
   opacity: .97;
 }
-.hero-map-dot {
-  position: absolute;
-  z-index: 2;
-  width: 17px;
-  height: 17px;
-  border: 3px solid white;
-  border-radius: 50%;
-  box-shadow: 0 3px 14px rgba(0,0,0,.3);
-  transform: translate(-50%, -50%);
-}
-.hero-map-dot--one { top: 31.37%; left: 57.58%; background: var(--birth); }
-.hero-map-dot--two { top: 59.79%; left: 26.43%; background: var(--death); }
-.hero-map-connection {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-.hero-map-connection path {
+
+.hero-map-route {
   fill: none;
   stroke: rgba(29,64,51,.58);
-  stroke-width: 2.4;
+  stroke-width: 4.5;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
+
+.hero-map-point {
+  stroke: #fff;
+  stroke-width: 5;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 3px 7px rgba(0,0,0,.28));
+}
+
+.hero-map-point--birth { fill: var(--birth); }
+.hero-map-point--death { fill: var(--death); }
 
 .home-section,
 .site-callout,

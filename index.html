@@ -34,12 +34,14 @@
       </div>
 
       <div class="home-map-art" aria-hidden="true">
-        <img src="assets/detailed-world-map.svg" alt="">
-        <svg class="hero-map-connection" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M 26.43 59.79 C 34 47, 45 36, 57.58 31.37"></path>
+        <!-- The map, line and dots share one Robinson-projection coordinate system.
+             Decorative points: Brasília, Brazil and Cairo, Egypt. -->
+        <svg class="hero-map-visual" viewBox="0 0 1419.6 719.98" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <image href="assets/detailed-world-map.svg" x="0" y="0" width="1419.6" height="719.98"></image>
+          <path class="hero-map-route" d="M 523.08 430.49 C 612 337, 719 256, 828.03 225.88"></path>
+          <circle class="hero-map-point hero-map-point--death" cx="523.08" cy="430.49" r="10"></circle>
+          <circle class="hero-map-point hero-map-point--birth" cx="828.03" cy="225.88" r="10"></circle>
         </svg>
-        <span class="hero-map-dot hero-map-dot--one"></span>
-        <span class="hero-map-dot hero-map-dot--two"></span>
       </div>
     </section>
 
@@ -53,21 +55,11 @@
       <div id="game-mode-grid" class="mode-grid"></div>
     </section>
 
-    <section class="site-callout">
-      <div>
-        <p class="eyebrow">Built to grow</p>
-        <h2>One home for many historical games</h2>
-      </div>
-      <p>
-        Histoglyph is now organised as a platform: homepage → game mode → collection → game.
-        Future categories such as American Presidents can be added as new collections.
-      </p>
-    </section>
   </main>
 
   <footer class="site-footer">
     <a class="brand brand--small" href="index.html"><span class="brand-mark">H</span><span>Histoglyph</span></a>
-    <p>Interactive history games. · <a href="privacy.html">Privacy</a></p>
+    <p>© 2026 Histoglyph. All Rights Reserved. · <a href="privacy.html">Privacy</a></p>
   </footer>
 
   <script defer src="js/home.bundle.js"></script>
