@@ -1,48 +1,55 @@
-# Histoglyph V17 — Supabase migration
+# Histoglyph V21 — Person portraits
 
-This version keeps the corrected local Robinson-projection map from V16 and moves the shared game data to Supabase/PostgreSQL.
+This version adds portrait support without changing the working map projection.
 
-## What is included
+## Existing Supabase project: required one-time setup
 
-- Central tables for places, people, accepted answers, tags and collections
-- Row Level Security
-- Supabase Auth login for the Data manager
-- Server-side pagination and search in the Data manager
-- Public game RPC functions that do not expose the person name before the round is completed
-- Server-validated answers, time and points
-- CSV import in the Data manager
-- A local Python bulk importer for thousands of rows
-- Demo migration for the people already present in V16
+1. In Supabase, open **Storage** and create a bucket named exactly `person-images`.
+2. Make the bucket **Public**.
+3. Recommended bucket restrictions:
+   - Allowed MIME types: `image/webp`, `image/jpeg`, `image/png`
+   - Maximum file size: 20 MB
+4. Open **SQL Editor** and run:
+   - `database/008_v21_person_portraits.sql`
+5. Publish the changed frontend files.
 
-## Setup — quickest route
+Do not rerun the full setup SQL on an existing production project unless you deliberately want to reapply the complete installation.
 
-1. Open **Supabase → SQL Editor**.
-2. Run `database/histoglyph_supabase_setup.sql`.
-3. In **Authentication → Users**, create your administrator with email and password.
-4. Edit `database/006_promote_admin.sql`, replace the example email, and run it.
-5. Open **Project Settings → API** and copy:
-   - Project URL
-   - Publishable key
-6. Paste them into `supabase-config.js`.
-7. Run the site through Live Server and open `setup-check.html`.
-8. Sign in at `admin.html`.
+## How portraits work
 
-## Never expose the secret key
+- The admin page accepts JPEG, PNG and WebP source images.
+- The browser resizes large images to max 1000 px on the longest side.
+- The upload is converted to WebP at approximately 84% quality.
+- Storage paths use the person's UUID and a random UUID filename, not the person's name.
+- `get_life_map_round` does not return image information.
+- The portrait path and attribution are only returned by the completed-round result RPC.
+- The game then obtains the public Storage URL and displays the portrait beside the answer.
 
-The browser only uses the publishable key. Do not put `sb_secret_...` or a legacy `service_role` key in `supabase-config.js`, GitHub or Cloudflare Pages.
+## New person fields
 
-## Large import
+- `image_path`
+- `image_credit`
+- `image_source_url`
+- `image_license`
 
-For 5,000 people, use the local importer:
+## Files changed from V20
 
-```bash
-export SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
-export SUPABASE_SECRET_KEY="sb_secret_..."
-python3 tools/import_to_supabase.py   --places starter-data/histoglyph-20-people-places.csv   --persons starter-data/histoglyph-20-historical-persons.csv
-```
+- `admin.html`
+- `admin.css`
+- `play.html`
+- `styles.css`
+- `js/admin-supabase.js`
+- `js/game-supabase.js`
+- `database/001_schema.sql`
+- `database/002_security.sql`
+- `database/003_functions.sql`
+- `database/schema.sql`
+- `database/histoglyph_supabase_setup.sql`
+- `templates/persons-template.csv`
 
-The secret key remains an environment variable on your computer. Remove it from the terminal session afterward.
+New migration:
+- `database/008_v21_person_portraits.sql`
 
-## Current limitation
+## Important
 
-The game database and answers are protected behind RPC functions, but this is still a test-stage architecture. Before a high-traffic launch, add rate limiting and abuse protection in front of the public RPC calls.
+Keep your existing real `supabase-config.js` when copying files into the live Git repository.

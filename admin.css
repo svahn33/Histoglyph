@@ -315,3 +315,41 @@
 
 /* Supabase administration and setup */
 .auth-gate{min-height:100vh;display:grid;place-items:center;padding:24px}.auth-gate[hidden]{display:none}.auth-card{width:min(440px,100%);display:grid;gap:14px;padding:28px;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:var(--shadow)}.auth-card h1{font-size:2.4rem}.auth-card label{display:grid;gap:6px;font-weight:750}.admin-header-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.pagination-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;color:var(--muted);font-size:.86rem}.setup-check-list{display:grid;gap:10px;margin-top:18px}.setup-check-row{display:grid;gap:4px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong)}.setup-check-row span{color:var(--muted);font-size:.9rem}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+
+/* V21: person portrait editor */
+.portrait-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 22px;
+  align-items: start;
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-strong);
+}
+
+.portrait-editor h3 { margin: 0 0 6px; }
+.portrait-editor-copy > .field-help { display: block; margin: 0 0 14px; line-height: 1.5; }
+.portrait-metadata-grid { margin-top: 14px; }
+.portrait-source-field { grid-column: 1 / -1; }
+.portrait-remove-button { margin-top: 12px; }
+
+.portrait-preview-card {
+  display: grid;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: white;
+  place-items: center;
+}
+.portrait-preview-empty { padding: 18px; color: var(--muted); text-align: center; font-size: 0.86rem; }
+.portrait-preview-image { width: 100%; height: 100%; object-fit: cover; }
+.portrait-preview-image[hidden], .portrait-preview-empty[hidden] { display: none; }
+
+@media (max-width: 720px) {
+  .portrait-editor { grid-template-columns: 1fr; }
+  .portrait-preview-card { width: min(220px, 100%); }
+}

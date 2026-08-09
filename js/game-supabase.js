@@ -5,6 +5,7 @@ const COUNTDOWN_SECONDS = 3;
 const TIMER_UPDATE_INTERVAL_MS = 50;
 const DEFAULT_DURATION_MS = 20_000;
 const MAX_ROUND_POINTS = 1000;
+const PORTRAIT_BUCKET = "person-images";
 
 const parameters = new URLSearchParams(window.location.search);
 const collectionSlug = parameters.get("collection") || "world-history";
@@ -35,6 +36,9 @@ const resultPersonNameElement = el("result-person-name");
 const resultPointsElement = el("result-points");
 const resultUnitElement = el("result-unit");
 const resultInstructionElement = el("result-instruction");
+const resultPortrait = el("result-portrait");
+const resultPortraitImage = el("result-portrait-image");
+const resultPortraitCredit = el("result-portrait-credit");
 const guessForm = el("guess-form");
 const guessInput = el("guess-input");
 const guessButton = el("guess-button");
@@ -92,9 +96,40 @@ function updateTimer(elapsed) {
   roundTimerElement.textContent = (remaining / 1000).toFixed(1);
   document.body.classList.toggle("round-time-low", remaining > 0 && remaining <= 5000);
 }
+function clearResultPortrait() {
+  resultPortrait.hidden = true;
+  resultPortraitImage.removeAttribute("src");
+  resultPortraitImage.alt = "";
+  resultPortraitCredit.textContent = "";
+  resultPortraitCredit.removeAttribute("href");
+  resultOverlay.classList.remove("round-result--has-portrait");
+}
 function hideResult() {
   resultOverlay.hidden = true;
-  resultOverlay.classList.remove("round-result--correct","round-result--incorrect","round-result--neutral","round-result--game-over");
+  resultOverlay.classList.remove("round-result--correct","round-result--incorrect","round-result--neutral","round-result--game-over","round-result--has-portrait");
+  clearResultPortrait();
+}
+function safeHttpUrl(value) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
+  } catch { return ""; }
+}
+function showResultPortrait(result) {
+  clearResultPortrait();
+  if (!result?.image_path) return;
+  const { data } = supabase.storage.from(PORTRAIT_BUCKET).getPublicUrl(result.image_path);
+  if (!data?.publicUrl) return;
+  resultPortraitImage.src = data.publicUrl;
+  resultPortraitImage.alt = `Portrait of ${result.person_name}`;
+  const creditParts = [result.image_credit, result.image_license].filter(Boolean);
+  resultPortraitCredit.textContent = creditParts.join(" · ") || "Image source";
+  const sourceUrl = safeHttpUrl(result.image_source_url);
+  if (sourceUrl) resultPortraitCredit.href = sourceUrl;
+  resultPortrait.hidden = false;
+  resultOverlay.classList.add("round-result--has-portrait");
+  resultPortraitImage.onerror = () => clearResultPortrait();
 }
 function fullPlaceName(name, country) {
   return [name, country].filter(Boolean).join(", ");
@@ -175,6 +210,7 @@ function showRoundResult(result) {
     ? "Press Enter to see your final result"
     : "Press Enter for the next round";
   resultOverlay.classList.add(`round-result--${statusClass}`);
+  showResultPortrait(result);
   resultOverlay.hidden = false;
 }
 async function finishRound(result) {
@@ -306,6 +342,7 @@ function showGameOver() {
     resultUnitElement.textContent = `correct out of ${roundCount}`;
   }
   resultInstructionElement.textContent = "Choose New game to play again";
+  clearResultPortrait();
   resultOverlay.className = "round-result round-result--game-over";
   resultOverlay.hidden = false;
 }

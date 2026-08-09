@@ -1,3 +1,5 @@
+-- ===== 001_schema.sql =====
+
 -- Histoglyph / Supabase schema
 -- Run this first in Supabase SQL Editor.
 
@@ -66,6 +68,10 @@ create table if not exists public.persons (
     verification_status in ('unverified','automatically_matched','manually_verified','uncertain')
   ),
   published boolean not null default false,
+  image_path text,
+  image_credit text,
+  image_source_url text,
+  image_license text,
   search_text text generated always as (
     lower(coalesce(name,'') || ' ' || coalesce(period,'') || ' ' || coalesce(legacy_id,''))
   ) stored,
@@ -134,6 +140,7 @@ create table if not exists public.game_sessions (
   collection_slug text not null references public.collections(slug),
   timed boolean not null,
   show_places_initially boolean not null,
+  difficulty_filter integer check (difficulty_filter between 1 and 5),
   round_count integer not null check (round_count between 1 and 100),
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default (now() + interval '24 hours')
@@ -163,6 +170,7 @@ DROP TRIGGER IF EXISTS collections_set_updated_at ON public.collections;
 create trigger collections_set_updated_at before update on public.collections
 for each row execute function public.set_updated_at();
 
+-- ===== 002_security.sql =====
 
 -- Histoglyph security and Row Level Security
 -- Run after 001_schema.sql.
@@ -282,6 +290,31 @@ grant select, insert, update, delete on
 grant usage, select on all sequences in schema public to authenticated;
 
 
+-- V21 portrait Storage policies
+drop policy if exists "Histoglyph admins can inspect portrait objects" on storage.objects;
+drop policy if exists "Histoglyph admins can upload portraits" on storage.objects;
+drop policy if exists "Histoglyph admins can update portraits" on storage.objects;
+drop policy if exists "Histoglyph admins can delete portraits" on storage.objects;
+
+create policy "Histoglyph admins can inspect portrait objects"
+on storage.objects for select to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can upload portraits"
+on storage.objects for insert to authenticated
+with check (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can update portraits"
+on storage.objects for update to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin())
+with check (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can delete portraits"
+on storage.objects for delete to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+-- ===== 003_functions.sql =====
+
 -- Histoglyph public game RPC and admin helper RPC
 -- Run after 002_security.sql.
 
@@ -356,7 +389,8 @@ create or replace function public.start_life_map_game(
   p_collection_slug text,
   p_round_count integer,
   p_timed boolean,
-  p_show_places boolean
+  p_show_places boolean,
+  p_difficulty integer
 )
 returns jsonb
 language plpgsql
@@ -368,7 +402,12 @@ declare
   v_round_count integer := greatest(1, least(100, coalesce(p_round_count, 5)));
   v_collection public.collections%rowtype;
   v_eligible_count integer;
+  v_difficulty integer := p_difficulty;
 begin
+  if v_difficulty is not null and (v_difficulty < 1 or v_difficulty > 5) then
+    raise exception 'Difficulty must be between 1 and 5.' using errcode = 'P0001';
+  end if;
+
   select * into v_collection
   from public.collections
   where slug = p_collection_slug
@@ -382,6 +421,7 @@ begin
   select count(*) into v_eligible_count
   from public.persons p
   where p.published
+    and (v_difficulty is null or p.difficulty = v_difficulty)
     and exists (select 1 from public.places bp where bp.id = p.birth_place_id)
     and exists (select 1 from public.places dp where dp.id = p.death_place_id)
     and (
@@ -399,17 +439,26 @@ begin
     );
 
   if v_eligible_count = 0 then
-    raise exception 'This collection has no published people.' using errcode = 'P0001';
+    raise exception 'This collection has no published people for the selected difficulty.' using errcode = 'P0001';
   end if;
 
-  insert into public.game_sessions(collection_slug, timed, show_places_initially, round_count)
-  values (v_collection.slug, coalesce(p_timed, true), coalesce(p_show_places, false), v_round_count)
+  insert into public.game_sessions(
+    collection_slug, timed, show_places_initially, difficulty_filter, round_count
+  )
+  values (
+    v_collection.slug,
+    coalesce(p_timed, true),
+    coalesce(p_show_places, false),
+    v_difficulty,
+    v_round_count
+  )
   returning id into v_session_id;
 
   with eligible as (
     select p.id
     from public.persons p
     where p.published
+      and (v_difficulty is null or p.difficulty = v_difficulty)
       and exists (select 1 from public.places bp where bp.id = p.birth_place_id)
       and exists (select 1 from public.places dp where dp.id = p.death_place_id)
       and (
@@ -447,11 +496,33 @@ begin
     'round_count', v_round_count,
     'timed', coalesce(p_timed, true),
     'show_places_initially', coalesce(p_show_places, false),
+    'difficulty_filter', v_difficulty,
     'collection_slug', v_collection.slug,
     'collection_title', v_collection.title,
     'collection_description', v_collection.description
   );
 end;
+$$;
+
+-- Backward-compatible wrapper for older deployed frontends.
+create or replace function public.start_life_map_game(
+  p_collection_slug text,
+  p_round_count integer,
+  p_timed boolean,
+  p_show_places boolean
+)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select public.start_life_map_game(
+    p_collection_slug,
+    p_round_count,
+    p_timed,
+    p_show_places,
+    null
+  );
 $$;
 
 create or replace function public.get_life_map_round(
@@ -576,7 +647,11 @@ as $$
     'birth_place_name', bp.name,
     'birth_country', bp.country,
     'death_place_name', dp.name,
-    'death_country', dp.country
+    'death_country', dp.country,
+    'image_path', p.image_path,
+    'image_credit', p.image_credit,
+    'image_source_url', p.image_source_url,
+    'image_license', p.image_license
   )
   from public.game_session_rounds r
   join public.persons p on p.id = r.person_id
@@ -745,7 +820,8 @@ begin
   insert into public.persons(
     id, legacy_id, name, period, birth_year, death_year,
     birth_place_id, death_place_id, difficulty,
-    verification_status, published
+    verification_status, published,
+    image_path, image_credit, image_source_url, image_license
   ) values (
     coalesce(v_person_id, gen_random_uuid()),
     nullif(p_payload->>'legacy_id',''),
@@ -757,7 +833,11 @@ begin
     v_death_place_id,
     coalesce((p_payload->>'difficulty')::integer, 1),
     coalesce(nullif(p_payload->>'verification_status',''), 'unverified'),
-    coalesce((p_payload->>'published')::boolean, false)
+    coalesce((p_payload->>'published')::boolean, false),
+    nullif(p_payload->>'image_path',''),
+    nullif(p_payload->>'image_credit',''),
+    nullif(p_payload->>'image_source_url',''),
+    nullif(p_payload->>'image_license','')
   )
   on conflict (id) do update set
     legacy_id = excluded.legacy_id,
@@ -769,7 +849,11 @@ begin
     death_place_id = excluded.death_place_id,
     difficulty = excluded.difficulty,
     verification_status = excluded.verification_status,
-    published = excluded.published
+    published = excluded.published,
+    image_path = case when p_payload ? 'image_path' then excluded.image_path else persons.image_path end,
+    image_credit = case when p_payload ? 'image_credit' then excluded.image_credit else persons.image_credit end,
+    image_source_url = case when p_payload ? 'image_source_url' then excluded.image_source_url else persons.image_source_url end,
+    image_license = case when p_payload ? 'image_license' then excluded.image_license else persons.image_license end
   returning id into v_person_id;
 
   delete from public.accepted_answers where person_id = v_person_id;
@@ -872,7 +956,11 @@ begin
       'verification_status', coalesce(nullif(v_row->>'verification_status',''), 'automatically_matched'),
       'published', coalesce(nullif(v_row->>'published',''), 'false'),
       'accepted_answers', to_jsonb(string_to_array(coalesce(v_row->>'accepted_answers',''), '|')),
-      'tags', to_jsonb(string_to_array(coalesce(v_row->>'tags',''), '|'))
+      'tags', to_jsonb(string_to_array(coalesce(v_row->>'tags',''), '|')),
+      'image_path', nullif(v_row->>'image_path',''),
+      'image_credit', nullif(v_row->>'image_credit',''),
+      'image_source_url', nullif(v_row->>'image_source_url',''),
+      'image_license', nullif(v_row->>'image_license','')
     );
     perform public.admin_upsert_person(v_payload);
     v_count := v_count + 1;
@@ -884,6 +972,7 @@ $$;
 revoke all on function public.life_map_round_result_json(uuid,integer) from public;
 revoke all on function public.list_life_map_collections() from public;
 revoke all on function public.start_life_map_game(text,integer,boolean,boolean) from public;
+revoke all on function public.start_life_map_game(text,integer,boolean,boolean,integer) from public;
 revoke all on function public.get_life_map_round(uuid,integer) from public;
 revoke all on function public.begin_life_map_round(uuid,integer) from public;
 revoke all on function public.submit_life_map_guess(uuid,integer,text) from public;
@@ -895,6 +984,7 @@ revoke all on function public.admin_import_people(jsonb) from public;
 
 grant execute on function public.list_life_map_collections() to anon, authenticated;
 grant execute on function public.start_life_map_game(text,integer,boolean,boolean) to anon, authenticated;
+grant execute on function public.start_life_map_game(text,integer,boolean,boolean,integer) to anon, authenticated;
 grant execute on function public.get_life_map_round(uuid,integer) to anon, authenticated;
 grant execute on function public.begin_life_map_round(uuid,integer) to anon, authenticated;
 grant execute on function public.submit_life_map_guess(uuid,integer,text) to anon, authenticated;
@@ -904,6 +994,7 @@ grant execute on function public.admin_upsert_person(jsonb) to authenticated, se
 grant execute on function public.admin_import_places(jsonb) to authenticated, service_role;
 grant execute on function public.admin_import_people(jsonb) to authenticated, service_role;
 
+-- ===== 004_collections.sql =====
 
 -- Initial Histoglyph collections
 insert into public.collections(
@@ -966,6 +1057,7 @@ from (values
 join public.tags t on t.slug = mapping.tag_slug
 on conflict do nothing;
 
+-- ===== 005_demo_data.sql =====
 
 -- Optional demo data from Histoglyph V16.
 -- Run after 004_collections.sql.
@@ -1018,3 +1110,409 @@ insert into public.accepted_answers(person_id,answer) select id,'gustav adolf' f
 insert into public.persons(legacy_id,name,period,birth_year,death_year,birth_place_id,death_place_id,difficulty,verification_status,published) select 'person-frida-kahlo','Frida Kahlo','20th Century',1907,1954,bp.id,dp.id,1,'manually_verified',true from public.places bp, public.places dp where bp.legacy_id='place-coyoacan-mx' and dp.legacy_id='place-coyoacan-mx' on conflict (legacy_id) do update set name=excluded.name,period=excluded.period,birth_year=excluded.birth_year,death_year=excluded.death_year,birth_place_id=excluded.birth_place_id,death_place_id=excluded.death_place_id,difficulty=excluded.difficulty,verification_status=excluded.verification_status,published=excluded.published;
 insert into public.accepted_answers(person_id,answer) select id,'frida kahlo' from public.persons where legacy_id='person-frida-kahlo' on conflict do nothing;
 insert into public.accepted_answers(person_id,answer) select id,'kahlo' from public.persons where legacy_id='person-frida-kahlo' on conflict do nothing;
+
+-- ===== 007_v18_difficulty_filter.sql =====
+
+-- Histoglyph V18 migration
+-- Run this once in Supabase SQL Editor before publishing the V18 frontend.
+
+alter table public.game_sessions
+  add column if not exists difficulty_filter integer;
+
+alter table public.game_sessions
+  drop constraint if exists game_sessions_difficulty_filter_check;
+
+alter table public.game_sessions
+  add constraint game_sessions_difficulty_filter_check
+  check (difficulty_filter between 1 and 5);
+
+create or replace function public.start_life_map_game(
+  p_collection_slug text,
+  p_round_count integer,
+  p_timed boolean,
+  p_show_places boolean,
+  p_difficulty integer
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session_id uuid;
+  v_round_count integer := greatest(1, least(100, coalesce(p_round_count, 5)));
+  v_collection public.collections%rowtype;
+  v_eligible_count integer;
+  v_difficulty integer := p_difficulty;
+begin
+  if v_difficulty is not null and (v_difficulty < 1 or v_difficulty > 5) then
+    raise exception 'Difficulty must be between 1 and 5.' using errcode = 'P0001';
+  end if;
+
+  select * into v_collection
+  from public.collections
+  where slug = p_collection_slug
+    and game_mode = 'life-map'
+    and status = 'available';
+
+  if not found then
+    raise exception 'Collection is not available.' using errcode = 'P0001';
+  end if;
+
+  select count(*) into v_eligible_count
+  from public.persons p
+  where p.published
+    and (v_difficulty is null or p.difficulty = v_difficulty)
+    and exists (select 1 from public.places bp where bp.id = p.birth_place_id)
+    and exists (select 1 from public.places dp where dp.id = p.death_place_id)
+    and (
+      v_collection.include_all_published
+      or exists (
+        select 1 from public.collection_persons cp
+        where cp.collection_slug = v_collection.slug and cp.person_id = p.id
+      )
+      or exists (
+        select 1
+        from public.person_tags pt
+        join public.collection_tags ct on ct.tag_id = pt.tag_id
+        where pt.person_id = p.id and ct.collection_slug = v_collection.slug
+      )
+    );
+
+  if v_eligible_count = 0 then
+    raise exception 'This collection has no published people for the selected difficulty.' using errcode = 'P0001';
+  end if;
+
+  insert into public.game_sessions(
+    collection_slug, timed, show_places_initially, difficulty_filter, round_count
+  )
+  values (
+    v_collection.slug,
+    coalesce(p_timed, true),
+    coalesce(p_show_places, false),
+    v_difficulty,
+    v_round_count
+  )
+  returning id into v_session_id;
+
+  with eligible as (
+    select p.id
+    from public.persons p
+    where p.published
+      and (v_difficulty is null or p.difficulty = v_difficulty)
+      and exists (select 1 from public.places bp where bp.id = p.birth_place_id)
+      and exists (select 1 from public.places dp where dp.id = p.death_place_id)
+      and (
+        v_collection.include_all_published
+        or exists (
+          select 1 from public.collection_persons cp
+          where cp.collection_slug = v_collection.slug and cp.person_id = p.id
+        )
+        or exists (
+          select 1
+          from public.person_tags pt
+          join public.collection_tags ct on ct.tag_id = pt.tag_id
+          where pt.person_id = p.id and ct.collection_slug = v_collection.slug
+        )
+      )
+  ),
+  shuffled as (
+    select id, row_number() over (order by random())::integer as rn
+    from eligible
+  ),
+  stats as (
+    select count(*)::integer as cnt from shuffled
+  )
+  insert into public.game_session_rounds(session_id, round_number, person_id)
+  select
+    v_session_id,
+    gs.round_number,
+    s.id
+  from generate_series(1, v_round_count) as gs(round_number)
+  cross join stats
+  join shuffled s on s.rn = ((gs.round_number - 1) % stats.cnt) + 1;
+
+  return jsonb_build_object(
+    'session_id', v_session_id,
+    'round_count', v_round_count,
+    'timed', coalesce(p_timed, true),
+    'show_places_initially', coalesce(p_show_places, false),
+    'difficulty_filter', v_difficulty,
+    'collection_slug', v_collection.slug,
+    'collection_title', v_collection.title,
+    'collection_description', v_collection.description
+  );
+end;
+$$;
+
+-- Keeps an older frontend working while the new files are being deployed.
+create or replace function public.start_life_map_game(
+  p_collection_slug text,
+  p_round_count integer,
+  p_timed boolean,
+  p_show_places boolean
+)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select public.start_life_map_game(
+    p_collection_slug,
+    p_round_count,
+    p_timed,
+    p_show_places,
+    null
+  );
+$$;
+
+revoke all on function public.start_life_map_game(text,integer,boolean,boolean,integer) from public;
+grant execute on function public.start_life_map_game(text,integer,boolean,boolean,integer)
+  to anon, authenticated;
+
+-- Difficulty is stored in persons.difficulty. Remove old difficulty-like tags
+-- without changing the actual difficulty values.
+delete from public.collection_tags
+where tag_id in (
+  select id from public.tags where slug in (
+    'easy','medium','hard','very-easy','very-hard',
+    'difficulty-1','difficulty-2','difficulty-3','difficulty-4','difficulty-5'
+  )
+);
+
+delete from public.person_tags
+where tag_id in (
+  select id from public.tags where slug in (
+    'easy','medium','hard','very-easy','very-hard',
+    'difficulty-1','difficulty-2','difficulty-3','difficulty-4','difficulty-5'
+  )
+);
+
+delete from public.tags
+where slug in (
+  'easy','medium','hard','very-easy','very-hard',
+  'difficulty-1','difficulty-2','difficulty-3','difficulty-4','difficulty-5'
+)
+and not exists (select 1 from public.person_tags pt where pt.tag_id = tags.id)
+and not exists (select 1 from public.collection_tags ct where ct.tag_id = tags.id);
+
+-- ===== 008_v21_person_portraits.sql =====
+
+-- Histoglyph V21 migration: person portraits with Supabase Storage
+-- Run this once in Supabase SQL Editor.
+-- Before using portrait uploads, create a PUBLIC Storage bucket named: person-images
+
+alter table public.persons
+  add column if not exists image_path text,
+  add column if not exists image_credit text,
+  add column if not exists image_source_url text,
+  add column if not exists image_license text;
+
+-- Portrait metadata is only returned after the round has been completed.
+create or replace function public.life_map_round_result_json(
+  p_session_id uuid,
+  p_round_number integer
+)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'correct', r.outcome = 'correct',
+    'outcome', r.outcome,
+    'points', r.points,
+    'person_name', p.name,
+    'birth_place_name', bp.name,
+    'birth_country', bp.country,
+    'death_place_name', dp.name,
+    'death_country', dp.country,
+    'image_path', p.image_path,
+    'image_credit', p.image_credit,
+    'image_source_url', p.image_source_url,
+    'image_license', p.image_license
+  )
+  from public.game_session_rounds r
+  join public.persons p on p.id = r.person_id
+  join public.places bp on bp.id = p.birth_place_id
+  join public.places dp on dp.id = p.death_place_id
+  where r.session_id = p_session_id and r.round_number = p_round_number
+    and r.completed_at is not null;
+$$;
+
+-- Admin helper: save a person and atomically replace answers/tags.
+-- Image fields are preserved when an older caller omits them from the JSON payload.
+create or replace function public.admin_upsert_person(p_payload jsonb)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_person_id uuid;
+  v_birth_place_id uuid;
+  v_death_place_id uuid;
+  v_tag text;
+  v_tag_id uuid;
+  v_answer text;
+begin
+  if coalesce((select auth.role()), '') <> 'service_role' and not public.is_histoglyph_admin() then
+    raise exception 'Administrator access is required.' using errcode = '42501';
+  end if;
+
+  v_birth_place_id := nullif(p_payload->>'birth_place_id','')::uuid;
+  v_death_place_id := nullif(p_payload->>'death_place_id','')::uuid;
+
+  if v_birth_place_id is null and nullif(p_payload->>'birth_place_legacy_id','') is not null then
+    select id into v_birth_place_id from public.places where legacy_id = p_payload->>'birth_place_legacy_id';
+  end if;
+  if v_death_place_id is null and nullif(p_payload->>'death_place_legacy_id','') is not null then
+    select id into v_death_place_id from public.places where legacy_id = p_payload->>'death_place_legacy_id';
+  end if;
+  if v_birth_place_id is null or v_death_place_id is null then
+    raise exception 'Birth and death places must exist before the person is imported.' using errcode = 'P0001';
+  end if;
+
+  if nullif(p_payload->>'id','') is not null then
+    v_person_id := (p_payload->>'id')::uuid;
+  elsif nullif(p_payload->>'legacy_id','') is not null then
+    select id into v_person_id from public.persons where legacy_id = p_payload->>'legacy_id';
+  end if;
+
+  insert into public.persons(
+    id, legacy_id, name, period, birth_year, death_year,
+    birth_place_id, death_place_id, difficulty,
+    verification_status, published,
+    image_path, image_credit, image_source_url, image_license
+  ) values (
+    coalesce(v_person_id, gen_random_uuid()),
+    nullif(p_payload->>'legacy_id',''),
+    p_payload->>'name',
+    p_payload->>'period',
+    (p_payload->>'birth_year')::integer,
+    (p_payload->>'death_year')::integer,
+    v_birth_place_id,
+    v_death_place_id,
+    coalesce((p_payload->>'difficulty')::integer, 1),
+    coalesce(nullif(p_payload->>'verification_status',''), 'unverified'),
+    coalesce((p_payload->>'published')::boolean, false),
+    nullif(p_payload->>'image_path',''),
+    nullif(p_payload->>'image_credit',''),
+    nullif(p_payload->>'image_source_url',''),
+    nullif(p_payload->>'image_license','')
+  )
+  on conflict (id) do update set
+    legacy_id = excluded.legacy_id,
+    name = excluded.name,
+    period = excluded.period,
+    birth_year = excluded.birth_year,
+    death_year = excluded.death_year,
+    birth_place_id = excluded.birth_place_id,
+    death_place_id = excluded.death_place_id,
+    difficulty = excluded.difficulty,
+    verification_status = excluded.verification_status,
+    published = excluded.published,
+    image_path = case when p_payload ? 'image_path' then excluded.image_path else persons.image_path end,
+    image_credit = case when p_payload ? 'image_credit' then excluded.image_credit else persons.image_credit end,
+    image_source_url = case when p_payload ? 'image_source_url' then excluded.image_source_url else persons.image_source_url end,
+    image_license = case when p_payload ? 'image_license' then excluded.image_license else persons.image_license end
+  returning id into v_person_id;
+
+  delete from public.accepted_answers where person_id = v_person_id;
+  for v_answer in select jsonb_array_elements_text(coalesce(p_payload->'accepted_answers','[]'::jsonb)) loop
+    if trim(v_answer) <> '' then
+      insert into public.accepted_answers(person_id, answer)
+      values (v_person_id, trim(v_answer)) on conflict do nothing;
+    end if;
+  end loop;
+
+  delete from public.person_tags where person_id = v_person_id;
+  for v_tag in select jsonb_array_elements_text(coalesce(p_payload->'tags','[]'::jsonb)) loop
+    v_tag := lower(trim(regexp_replace(v_tag, '[^a-zA-Z0-9]+', '-', 'g')));
+    v_tag := trim(both '-' from v_tag);
+    if v_tag <> '' then
+      insert into public.tags(slug, name)
+      values (v_tag, initcap(replace(v_tag, '-', ' ')))
+      on conflict (slug) do update set name = excluded.name
+      returning id into v_tag_id;
+      insert into public.person_tags(person_id, tag_id)
+      values (v_person_id, v_tag_id) on conflict do nothing;
+    end if;
+  end loop;
+
+  return v_person_id;
+end;
+$$;
+
+create or replace function public.admin_import_people(p_rows jsonb)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row jsonb;
+  v_payload jsonb;
+  v_count integer := 0;
+begin
+  if coalesce((select auth.role()), '') <> 'service_role' and not public.is_histoglyph_admin() then
+    raise exception 'Administrator access is required.' using errcode = '42501';
+  end if;
+
+  for v_row in select value from jsonb_array_elements(p_rows) loop
+    v_payload := jsonb_build_object(
+      'legacy_id', nullif(v_row->>'id',''),
+      'name', v_row->>'name',
+      'period', v_row->>'period',
+      'birth_year', v_row->>'birth_year',
+      'death_year', v_row->>'death_year',
+      'birth_place_legacy_id', v_row->>'birth_place_id',
+      'death_place_legacy_id', v_row->>'death_place_id',
+      'difficulty', coalesce(nullif(v_row->>'difficulty',''), '1'),
+      'verification_status', coalesce(nullif(v_row->>'verification_status',''), 'automatically_matched'),
+      'published', coalesce(nullif(v_row->>'published',''), 'false'),
+      'accepted_answers', to_jsonb(string_to_array(coalesce(v_row->>'accepted_answers',''), '|')),
+      'tags', to_jsonb(string_to_array(coalesce(v_row->>'tags',''), '|')),
+      'image_path', nullif(v_row->>'image_path',''),
+      'image_credit', nullif(v_row->>'image_credit',''),
+      'image_source_url', nullif(v_row->>'image_source_url',''),
+      'image_license', nullif(v_row->>'image_license','')
+    );
+    perform public.admin_upsert_person(v_payload);
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end;
+$$;
+
+-- Storage API operations remain protected even though the bucket itself is public.
+-- The bucket is public only so completed-round portraits can be served efficiently.
+drop policy if exists "Histoglyph admins can inspect portrait objects" on storage.objects;
+drop policy if exists "Histoglyph admins can upload portraits" on storage.objects;
+drop policy if exists "Histoglyph admins can update portraits" on storage.objects;
+drop policy if exists "Histoglyph admins can delete portraits" on storage.objects;
+
+create policy "Histoglyph admins can inspect portrait objects"
+on storage.objects for select to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can upload portraits"
+on storage.objects for insert to authenticated
+with check (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can update portraits"
+on storage.objects for update to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin())
+with check (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can delete portraits"
+on storage.objects for delete to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+revoke all on function public.life_map_round_result_json(uuid,integer) from public;
+revoke all on function public.admin_upsert_person(jsonb) from public;
+revoke all on function public.admin_import_people(jsonb) from public;
+
+grant execute on function public.admin_upsert_person(jsonb) to authenticated, service_role;
+grant execute on function public.admin_import_people(jsonb) to authenticated, service_role;

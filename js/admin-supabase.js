@@ -4,7 +4,19 @@ import { DetailedWorldMap } from "./offline-world-map.js";
 const supabase = requireSupabase();
 const $ = id => document.querySelector(`#${id}`);
 const PAGE_SIZE = 50;
-const state = { placePage: 0, personPage: 0, placeCount: 0, personCount: 0, selectedPlace: null, selectedPerson: null, map: null };
+const PORTRAIT_BUCKET = "person-images";
+const PORTRAIT_MAX_DIMENSION = 1000;
+const state = {
+  placePage: 0,
+  personPage: 0,
+  placeCount: 0,
+  personCount: 0,
+  selectedPlace: null,
+  selectedPerson: null,
+  map: null,
+  portraitObjectUrl: null,
+  removePortrait: false
+};
 let searchTimer;
 
 function message(target, text, type = "neutral") {
@@ -15,6 +27,78 @@ function normalizeSlug(value) {
   return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 function formatPlace(place) { return `${place.name}, ${place.country}`; }
+function portraitPublicUrl(path) {
+  if (!path) return "";
+  return supabase.storage.from(PORTRAIT_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+function revokePortraitObjectUrl() {
+  if (state.portraitObjectUrl) URL.revokeObjectURL(state.portraitObjectUrl);
+  state.portraitObjectUrl = null;
+}
+function showPortraitPreview(url = "") {
+  const image = $("person-portrait-preview");
+  const empty = $("person-portrait-empty");
+  if (url) {
+    image.src = url;
+    image.hidden = false;
+    empty.hidden = true;
+  } else {
+    image.removeAttribute("src");
+    image.hidden = true;
+    empty.hidden = false;
+  }
+}
+function resetPortraitEditor() {
+  revokePortraitObjectUrl();
+  state.removePortrait = false;
+  $("person-portrait-file").value = "";
+  $("person-image-credit").value = "";
+  $("person-image-license").value = "";
+  $("person-image-source-url").value = "";
+  $("remove-person-portrait").disabled = true;
+  showPortraitPreview();
+}
+function loadImageElement(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const url = URL.createObjectURL(file);
+    image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
+    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error("The selected image could not be read.")); };
+    image.src = url;
+  });
+}
+async function preparePortraitBlob(file) {
+  if (!file || !file.type.startsWith("image/")) throw new Error("Choose a JPEG, PNG or WebP image.");
+  if (file.size > 20 * 1024 * 1024) throw new Error("The source image is larger than 20 MB.");
+  const image = await loadImageElement(file);
+  const scale = Math.min(1, PORTRAIT_MAX_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d", { alpha: false });
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.84));
+  if (!blob) throw new Error("The browser could not convert the portrait to WebP.");
+  return blob;
+}
+async function uploadPortrait(personId, file) {
+  const blob = await preparePortraitBlob(file);
+  const path = `persons/${personId}/${crypto.randomUUID()}.webp`;
+  const { error } = await supabase.storage.from(PORTRAIT_BUCKET).upload(path, blob, {
+    cacheControl: "31536000",
+    contentType: "image/webp",
+    upsert: false
+  });
+  if (error) throw new Error(`Portrait upload failed: ${error.message}`);
+  return path;
+}
+async function removePortraitObject(path) {
+  if (!path) return;
+  const { error } = await supabase.storage.from(PORTRAIT_BUCKET).remove([path]);
+  if (error) console.warn("Could not remove old portrait object:", error);
+}
 function debounce(fn) { clearTimeout(searchTimer); searchTimer = setTimeout(fn, 250); }
 function setTab(name) {
   document.querySelectorAll(".tab-button").forEach(button => button.classList.toggle("active", button.dataset.tab === name));
@@ -115,10 +199,13 @@ async function loadPerson(id) {
   $("person-id").value = data.id; $("person-name").value = data.name; $("person-period").value = data.period; $("person-birth-year").value = data.birth_year; $("person-death-year").value = data.death_year;
   $("person-difficulty").value = data.difficulty; $("person-verification-status").value = data.verification_status; $("person-published").checked = data.published;
   $("person-accepted-answers").value = (data.accepted_answers || []).map(x => x.answer).join("\n"); $("person-tags").value = (data.person_tags || []).map(x => x.tags?.slug).filter(Boolean).join("\n");
+  revokePortraitObjectUrl(); state.removePortrait = false; $("person-portrait-file").value = "";
+  $("person-image-credit").value = data.image_credit || ""; $("person-image-license").value = data.image_license || ""; $("person-image-source-url").value = data.image_source_url || "";
+  showPortraitPreview(data.image_path ? portraitPublicUrl(data.image_path) : ""); $("remove-person-portrait").disabled = !data.image_path;
   selectPlace("birth", data.birth_place); selectPlace("death", data.death_place); $("person-editor-title").textContent = data.name; $("person-id-badge").textContent = data.legacy_id || data.id; $("delete-person-button").disabled = false; await loadPersons();
 }
 function clearPerson() {
-  state.selectedPerson = null; $("person-form").reset(); $("person-id").value = ""; $("birth-place-id").value = ""; $("death-place-id").value = ""; $("birth-place-selected").textContent = "No place selected"; $("death-place-selected").textContent = "No place selected"; $("person-editor-title").textContent = "New person"; $("person-id-badge").textContent = "Unsaved"; $("delete-person-button").disabled = true; $("person-difficulty").value = "1"; $("person-verification-status").value = "unverified"; loadPersons();
+  state.selectedPerson = null; $("person-form").reset(); $("person-id").value = ""; $("birth-place-id").value = ""; $("death-place-id").value = ""; $("birth-place-selected").textContent = "No place selected"; $("death-place-selected").textContent = "No place selected"; $("person-editor-title").textContent = "New person"; $("person-id-badge").textContent = "Unsaved"; $("delete-person-button").disabled = true; $("person-difficulty").value = "1"; $("person-verification-status").value = "unverified"; resetPortraitEditor(); loadPersons();
 }
 function selectPlace(prefix, place) {
   $(`${prefix}-place-id`).value = place?.id || ""; $(`${prefix}-place-selected`).textContent = place ? `${place.name}, ${place.country} · ${place.verification_status.replaceAll("_", " ")}` : "No place selected"; $(`${prefix}-place-search`).value = ""; $(`${prefix}-place-suggestions`).replaceChildren();
@@ -132,13 +219,71 @@ function setupPlacePicker(prefix) {
 }
 async function savePerson(event) {
   event.preventDefault();
-  const payload = { id: state.selectedPerson?.id || null, legacy_id: state.selectedPerson?.legacy_id || null, name: $("person-name").value.trim(), period: $("person-period").value.trim(), birth_year: Number($("person-birth-year").value), death_year: Number($("person-death-year").value), birth_place_id: $("birth-place-id").value, death_place_id: $("death-place-id").value, difficulty: Number($("person-difficulty").value), verification_status: $("person-verification-status").value, published: $("person-published").checked, accepted_answers: $("person-accepted-answers").value.split(/\r?\n/).map(x => x.trim()).filter(Boolean), tags: $("person-tags").value.split(/\r?\n/).map(normalizeSlug).filter(Boolean) };
-  const { data, error } = await supabase.rpc("admin_upsert_person", { p_payload: payload });
-  if (error) return message($("person-validation"), error.message, "error"); message($("person-validation"), "Person saved in Supabase.", "success"); await refreshMetrics(); await loadPerson(data);
+  const selectedFile = $("person-portrait-file").files[0] || null;
+  const previousPath = state.selectedPerson?.image_path || null;
+  const basePayload = {
+    id: state.selectedPerson?.id || null,
+    legacy_id: state.selectedPerson?.legacy_id || null,
+    name: $("person-name").value.trim(),
+    period: $("person-period").value.trim(),
+    birth_year: Number($("person-birth-year").value),
+    death_year: Number($("person-death-year").value),
+    birth_place_id: $("birth-place-id").value,
+    death_place_id: $("death-place-id").value,
+    difficulty: Number($("person-difficulty").value),
+    verification_status: $("person-verification-status").value,
+    published: $("person-published").checked,
+    accepted_answers: $("person-accepted-answers").value.split(/\r?\n/).map(x => x.trim()).filter(Boolean),
+    tags: $("person-tags").value.split(/\r?\n/).map(normalizeSlug).filter(Boolean),
+    image_credit: $("person-image-credit").value.trim() || null,
+    image_source_url: $("person-image-source-url").value.trim() || null,
+    image_license: $("person-image-license").value.trim() || null
+  };
+
+  try {
+    message($("person-validation"), selectedFile ? "Saving person and preparing portrait…" : "Saving person…");
+
+    // First save guarantees that a new person has a stable UUID for a neutral Storage path.
+    const initialPayload = { ...basePayload };
+    if (state.removePortrait) initialPayload.image_path = null;
+    else if (previousPath) initialPayload.image_path = previousPath;
+    const initial = await supabase.rpc("admin_upsert_person", { p_payload: initialPayload });
+    if (initial.error) throw initial.error;
+    const personId = initial.data;
+
+    let finalPath = state.removePortrait ? null : previousPath;
+    let uploadedPath = null;
+    if (selectedFile) {
+      message($("person-validation"), "Uploading compressed portrait…");
+      uploadedPath = await uploadPortrait(personId, selectedFile);
+      finalPath = uploadedPath;
+      const finalSave = await supabase.rpc("admin_upsert_person", {
+        p_payload: { ...basePayload, id: personId, image_path: finalPath }
+      });
+      if (finalSave.error) {
+        await removePortraitObject(uploadedPath);
+        throw finalSave.error;
+      }
+    }
+
+    if ((state.removePortrait || selectedFile) && previousPath && previousPath !== finalPath) {
+      await removePortraitObject(previousPath);
+    }
+
+    message($("person-validation"), selectedFile ? "Person and portrait saved in Supabase." : "Person saved in Supabase.", "success");
+    await refreshMetrics();
+    await loadPerson(personId);
+  } catch (error) {
+    message($("person-validation"), error.message || String(error), "error");
+  }
 }
 async function deletePerson() {
   if (!state.selectedPerson || !confirm("Delete this person?")) return;
-  const { error } = await supabase.from("persons").delete().eq("id", state.selectedPerson.id); if (error) return message($("person-validation"), error.message, "error"); clearPerson(); await refreshMetrics();
+  const portraitPath = state.selectedPerson.image_path || null;
+  const { error } = await supabase.from("persons").delete().eq("id", state.selectedPerson.id);
+  if (error) return message($("person-validation"), error.message, "error");
+  if (portraitPath) await removePortraitObject(portraitPath);
+  clearPerson(); await refreshMetrics();
 }
 function parseCsv(text) {
   const rows=[]; let row=[], field="", quoted=false;
@@ -160,7 +305,7 @@ async function exportData(format) {
   try { message($("transfer-status"),"Preparing export…"); const places=await fetchAll("places"); const persons=await fetchAll("persons","*,accepted_answers(answer),person_tags(tags(slug))");
     if(format==="json") download("histoglyph-supabase-backup.json",JSON.stringify({exported_at:new Date().toISOString(),places,persons},null,2),"application/json");
     if(format==="places") download("places.csv",toCsv(places.map(p=>({id:p.legacy_id||p.id,name:p.name,country:p.country,latitude:p.latitude,longitude:p.longitude,precision:p.precision,verification_status:p.verification_status,source:p.source||"",source_id:p.source_id||"",notes:p.notes||""})),["id","name","country","latitude","longitude","precision","verification_status","source","source_id","notes"]),"text/csv");
-    if(format==="persons") download("persons.csv",toCsv(persons.map(p=>({id:p.legacy_id||p.id,name:p.name,accepted_answers:(p.accepted_answers||[]).map(a=>a.answer).join("|"),tags:(p.person_tags||[]).map(t=>t.tags?.slug).filter(Boolean).join("|"),period:p.period,birth_year:p.birth_year,death_year:p.death_year,birth_place_id:p.birth_place_id,death_place_id:p.death_place_id,difficulty:p.difficulty,verification_status:p.verification_status,published:p.published})),["id","name","accepted_answers","tags","period","birth_year","death_year","birth_place_id","death_place_id","difficulty","verification_status","published"]),"text/csv");
+    if(format==="persons") download("persons.csv",toCsv(persons.map(p=>({id:p.legacy_id||p.id,name:p.name,accepted_answers:(p.accepted_answers||[]).map(a=>a.answer).join("|"),tags:(p.person_tags||[]).map(t=>t.tags?.slug).filter(Boolean).join("|"),period:p.period,birth_year:p.birth_year,death_year:p.death_year,birth_place_id:p.birth_place_id,death_place_id:p.death_place_id,difficulty:p.difficulty,verification_status:p.verification_status,published:p.published,image_path:p.image_path||"",image_credit:p.image_credit||"",image_source_url:p.image_source_url||"",image_license:p.image_license||""})),["id","name","accepted_answers","tags","period","birth_year","death_year","birth_place_id","death_place_id","difficulty","verification_status","published","image_path","image_credit","image_source_url","image_license"]),"text/csv");
     message($("transfer-status"),"Export ready.","success");
   } catch(error){message($("transfer-status"),error.message,"error");}
 }
@@ -179,5 +324,24 @@ setupPlacePicker("birth"); setupPlacePicker("death");
 document.querySelectorAll("[data-admin-region]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-admin-region]").forEach(x=>x.classList.remove("active"));button.classList.add("active");state.map.zoomToRegion(button.dataset.adminRegion);}));
 $("import-places-button").addEventListener("click",()=>importCsv("places")); $("import-persons-button").addEventListener("click",()=>importCsv("persons"));
 $("export-json-button").addEventListener("click",()=>exportData("json")); $("export-places-csv-button").addEventListener("click",()=>exportData("places")); $("export-persons-csv-button").addEventListener("click",()=>exportData("persons"));
+$("person-portrait-file").addEventListener("change", () => {
+  revokePortraitObjectUrl();
+  const file = $("person-portrait-file").files[0];
+  if (!file) {
+    showPortraitPreview(state.removePortrait ? "" : portraitPublicUrl(state.selectedPerson?.image_path));
+    return;
+  }
+  state.removePortrait = false;
+  state.portraitObjectUrl = URL.createObjectURL(file);
+  showPortraitPreview(state.portraitObjectUrl);
+  $("remove-person-portrait").disabled = false;
+});
+$("remove-person-portrait").addEventListener("click", () => {
+  revokePortraitObjectUrl();
+  state.removePortrait = true;
+  $("person-portrait-file").value = "";
+  showPortraitPreview();
+  $("remove-person-portrait").disabled = true;
+});
 
 if (await requireAdmin()) await showApp();

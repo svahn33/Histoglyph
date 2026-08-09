@@ -1,2 +1,2 @@
-id,name,accepted_answers,tags,period,birth_year,death_year,birth_place_id,death_place_id,difficulty,verification_status,published
-person-example,Example Person,Example Person|Surname,example-tag,Example Period,1900,1980,place-example,place-example,2,automatically_matched,false
+id,name,accepted_answers,tags,period,birth_year,death_year,birth_place_id,death_place_id,difficulty,verification_status,published,image_path,image_credit,image_source_url,image_license
+person-example,Example Person,Example Person|Surname,example-tag,Example Period,1900,1980,place-example,place-example,2,automatically_matched,false,,,,

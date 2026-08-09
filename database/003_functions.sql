@@ -72,7 +72,8 @@ create or replace function public.start_life_map_game(
   p_collection_slug text,
   p_round_count integer,
   p_timed boolean,
-  p_show_places boolean
+  p_show_places boolean,
+  p_difficulty integer
 )
 returns jsonb
 language plpgsql
@@ -84,7 +85,12 @@ declare
   v_round_count integer := greatest(1, least(100, coalesce(p_round_count, 5)));
   v_collection public.collections%rowtype;
   v_eligible_count integer;
+  v_difficulty integer := p_difficulty;
 begin
+  if v_difficulty is not null and (v_difficulty < 1 or v_difficulty > 5) then
+    raise exception 'Difficulty must be between 1 and 5.' using errcode = 'P0001';
+  end if;
+
   select * into v_collection
   from public.collections
   where slug = p_collection_slug
@@ -98,6 +104,7 @@ begin
   select count(*) into v_eligible_count
   from public.persons p
   where p.published
+    and (v_difficulty is null or p.difficulty = v_difficulty)
     and exists (select 1 from public.places bp where bp.id = p.birth_place_id)
     and exists (select 1 from public.places dp where dp.id = p.death_place_id)
     and (
@@ -115,17 +122,26 @@ begin
     );
 
   if v_eligible_count = 0 then
-    raise exception 'This collection has no published people.' using errcode = 'P0001';
+    raise exception 'This collection has no published people for the selected difficulty.' using errcode = 'P0001';
   end if;
 
-  insert into public.game_sessions(collection_slug, timed, show_places_initially, round_count)
-  values (v_collection.slug, coalesce(p_timed, true), coalesce(p_show_places, false), v_round_count)
+  insert into public.game_sessions(
+    collection_slug, timed, show_places_initially, difficulty_filter, round_count
+  )
+  values (
+    v_collection.slug,
+    coalesce(p_timed, true),
+    coalesce(p_show_places, false),
+    v_difficulty,
+    v_round_count
+  )
   returning id into v_session_id;
 
   with eligible as (
     select p.id
     from public.persons p
     where p.published
+      and (v_difficulty is null or p.difficulty = v_difficulty)
       and exists (select 1 from public.places bp where bp.id = p.birth_place_id)
       and exists (select 1 from public.places dp where dp.id = p.death_place_id)
       and (
@@ -163,11 +179,33 @@ begin
     'round_count', v_round_count,
     'timed', coalesce(p_timed, true),
     'show_places_initially', coalesce(p_show_places, false),
+    'difficulty_filter', v_difficulty,
     'collection_slug', v_collection.slug,
     'collection_title', v_collection.title,
     'collection_description', v_collection.description
   );
 end;
+$$;
+
+-- Backward-compatible wrapper for older deployed frontends.
+create or replace function public.start_life_map_game(
+  p_collection_slug text,
+  p_round_count integer,
+  p_timed boolean,
+  p_show_places boolean
+)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select public.start_life_map_game(
+    p_collection_slug,
+    p_round_count,
+    p_timed,
+    p_show_places,
+    null
+  );
 $$;
 
 create or replace function public.get_life_map_round(
@@ -292,7 +330,11 @@ as $$
     'birth_place_name', bp.name,
     'birth_country', bp.country,
     'death_place_name', dp.name,
-    'death_country', dp.country
+    'death_country', dp.country,
+    'image_path', p.image_path,
+    'image_credit', p.image_credit,
+    'image_source_url', p.image_source_url,
+    'image_license', p.image_license
   )
   from public.game_session_rounds r
   join public.persons p on p.id = r.person_id
@@ -461,7 +503,8 @@ begin
   insert into public.persons(
     id, legacy_id, name, period, birth_year, death_year,
     birth_place_id, death_place_id, difficulty,
-    verification_status, published
+    verification_status, published,
+    image_path, image_credit, image_source_url, image_license
   ) values (
     coalesce(v_person_id, gen_random_uuid()),
     nullif(p_payload->>'legacy_id',''),
@@ -473,7 +516,11 @@ begin
     v_death_place_id,
     coalesce((p_payload->>'difficulty')::integer, 1),
     coalesce(nullif(p_payload->>'verification_status',''), 'unverified'),
-    coalesce((p_payload->>'published')::boolean, false)
+    coalesce((p_payload->>'published')::boolean, false),
+    nullif(p_payload->>'image_path',''),
+    nullif(p_payload->>'image_credit',''),
+    nullif(p_payload->>'image_source_url',''),
+    nullif(p_payload->>'image_license','')
   )
   on conflict (id) do update set
     legacy_id = excluded.legacy_id,
@@ -485,7 +532,11 @@ begin
     death_place_id = excluded.death_place_id,
     difficulty = excluded.difficulty,
     verification_status = excluded.verification_status,
-    published = excluded.published
+    published = excluded.published,
+    image_path = case when p_payload ? 'image_path' then excluded.image_path else persons.image_path end,
+    image_credit = case when p_payload ? 'image_credit' then excluded.image_credit else persons.image_credit end,
+    image_source_url = case when p_payload ? 'image_source_url' then excluded.image_source_url else persons.image_source_url end,
+    image_license = case when p_payload ? 'image_license' then excluded.image_license else persons.image_license end
   returning id into v_person_id;
 
   delete from public.accepted_answers where person_id = v_person_id;
@@ -588,7 +639,11 @@ begin
       'verification_status', coalesce(nullif(v_row->>'verification_status',''), 'automatically_matched'),
       'published', coalesce(nullif(v_row->>'published',''), 'false'),
       'accepted_answers', to_jsonb(string_to_array(coalesce(v_row->>'accepted_answers',''), '|')),
-      'tags', to_jsonb(string_to_array(coalesce(v_row->>'tags',''), '|'))
+      'tags', to_jsonb(string_to_array(coalesce(v_row->>'tags',''), '|')),
+      'image_path', nullif(v_row->>'image_path',''),
+      'image_credit', nullif(v_row->>'image_credit',''),
+      'image_source_url', nullif(v_row->>'image_source_url',''),
+      'image_license', nullif(v_row->>'image_license','')
     );
     perform public.admin_upsert_person(v_payload);
     v_count := v_count + 1;
@@ -600,6 +655,7 @@ $$;
 revoke all on function public.life_map_round_result_json(uuid,integer) from public;
 revoke all on function public.list_life_map_collections() from public;
 revoke all on function public.start_life_map_game(text,integer,boolean,boolean) from public;
+revoke all on function public.start_life_map_game(text,integer,boolean,boolean,integer) from public;
 revoke all on function public.get_life_map_round(uuid,integer) from public;
 revoke all on function public.begin_life_map_round(uuid,integer) from public;
 revoke all on function public.submit_life_map_guess(uuid,integer,text) from public;
@@ -611,6 +667,7 @@ revoke all on function public.admin_import_people(jsonb) from public;
 
 grant execute on function public.list_life_map_collections() to anon, authenticated;
 grant execute on function public.start_life_map_game(text,integer,boolean,boolean) to anon, authenticated;
+grant execute on function public.start_life_map_game(text,integer,boolean,boolean,integer) to anon, authenticated;
 grant execute on function public.get_life_map_round(uuid,integer) to anon, authenticated;
 grant execute on function public.begin_life_map_round(uuid,integer) to anon, authenticated;
 grant execute on function public.submit_life_map_guess(uuid,integer,text) to anon, authenticated;

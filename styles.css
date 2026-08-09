@@ -1605,3 +1605,52 @@ input { padding: 13px 14px; }
   left: auto;
   border-radius: 0 8px 8px 0;
 }
+
+
+/* V21: portrait shown only after a round is completed */
+.result-portrait {
+  grid-column: 1;
+  grid-row: 1 / span 4;
+  width: 118px;
+  margin: 0;
+  align-self: stretch;
+}
+.result-portrait[hidden] { display: none; }
+.result-portrait img {
+  display: block;
+  width: 118px;
+  aspect-ratio: 4 / 5;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--surface-strong);
+}
+.result-portrait figcaption {
+  margin-top: 5px;
+  line-height: 1.2;
+}
+.result-portrait a {
+  color: #5b615d;
+  font-size: 0.67rem;
+  text-decoration: none;
+}
+.result-portrait a[href]:hover { text-decoration: underline; }
+
+.round-result.round-result--has-portrait {
+  grid-template-columns: 118px minmax(0, 1fr);
+  column-gap: 14px;
+  width: min(520px, calc(100% - 28px));
+}
+.round-result--has-portrait > .round-result-status,
+.round-result--has-portrait > strong,
+.round-result--has-portrait > p,
+.round-result--has-portrait > small { grid-column: 2; }
+
+@media (max-width: 520px) {
+  .result-portrait,
+  .result-portrait img { width: 88px; }
+  .round-result.round-result--has-portrait {
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: 11px;
+  }
+  .result-portrait a { font-size: 0.6rem; }
+}

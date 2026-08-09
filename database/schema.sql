@@ -64,6 +64,10 @@ create table if not exists persons (
     check (difficulty between 1 and 5),
 
   published boolean not null default false,
+  image_path text,
+  image_credit text,
+  image_source_url text,
+  image_license text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

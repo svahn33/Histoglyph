@@ -114,3 +114,27 @@ grant select, insert, update, delete on
   public.collection_persons
   to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
+
+
+-- V21 portrait Storage policies
+drop policy if exists "Histoglyph admins can inspect portrait objects" on storage.objects;
+drop policy if exists "Histoglyph admins can upload portraits" on storage.objects;
+drop policy if exists "Histoglyph admins can update portraits" on storage.objects;
+drop policy if exists "Histoglyph admins can delete portraits" on storage.objects;
+
+create policy "Histoglyph admins can inspect portrait objects"
+on storage.objects for select to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can upload portraits"
+on storage.objects for insert to authenticated
+with check (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can update portraits"
+on storage.objects for update to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin())
+with check (bucket_id = 'person-images' and public.is_histoglyph_admin());
+
+create policy "Histoglyph admins can delete portraits"
+on storage.objects for delete to authenticated
+using (bucket_id = 'person-images' and public.is_histoglyph_admin());

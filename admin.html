@@ -106,6 +106,24 @@
               <div class="place-picker"><label>Birthplace<input id="birth-place-search" type="search" autocomplete="off" placeholder="Search central place registry"></label><input id="birth-place-id" type="hidden"><div id="birth-place-selected" class="selected-place">No place selected</div><div id="birth-place-suggestions" class="suggestion-list"></div></div>
               <div class="place-picker"><label>Place of death<input id="death-place-search" type="search" autocomplete="off" placeholder="Search central place registry"></label><input id="death-place-id" type="hidden"><div id="death-place-selected" class="selected-place">No place selected</div><div id="death-place-suggestions" class="suggestion-list"></div></div>
             </div>
+            <section class="portrait-editor" aria-labelledby="portrait-editor-title">
+              <div class="portrait-editor-copy">
+                <p class="eyebrow">Portrait</p>
+                <h3 id="portrait-editor-title">Result image</h3>
+                <p class="field-help">The portrait is only revealed to players after the round is completed. New uploads are resized and converted to WebP before they are stored.</p>
+                <label>Choose image<input id="person-portrait-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+                <div class="form-grid portrait-metadata-grid">
+                  <label>Image credit<input id="person-image-credit" placeholder="Artist / photographer / Wikimedia Commons"></label>
+                  <label>License<input id="person-image-license" placeholder="Public domain, CC BY 4.0…"></label>
+                  <label class="portrait-source-field">Source URL<input id="person-image-source-url" type="url" placeholder="https://..."></label>
+                </div>
+                <button id="remove-person-portrait" class="secondary-button portrait-remove-button" type="button" disabled>Remove portrait</button>
+              </div>
+              <div class="portrait-preview-card">
+                <div id="person-portrait-empty" class="portrait-preview-empty">No portrait uploaded</div>
+                <img id="person-portrait-preview" class="portrait-preview-image" alt="Portrait preview" hidden>
+              </div>
+            </section>
             <div class="person-textarea-grid"><label>Accepted answers — one per line<textarea id="person-accepted-answers" rows="5"></textarea></label><label>Collection tags — one per line<textarea id="person-tags" rows="5"></textarea><small class="field-help">Examples: american-president, renaissance, north-america</small></label></div>
             <div id="person-validation" class="validation-panel" aria-live="polite"></div>
             <div class="form-actions"><button class="primary-button" type="submit">Save person</button><button id="delete-person-button" class="danger-button" type="button" disabled>Delete person</button></div>

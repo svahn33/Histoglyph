@@ -66,6 +66,10 @@ create table if not exists public.persons (
     verification_status in ('unverified','automatically_matched','manually_verified','uncertain')
   ),
   published boolean not null default false,
+  image_path text,
+  image_credit text,
+  image_source_url text,
+  image_license text,
   search_text text generated always as (
     lower(coalesce(name,'') || ' ' || coalesce(period,'') || ' ' || coalesce(legacy_id,''))
   ) stored,
@@ -134,6 +138,7 @@ create table if not exists public.game_sessions (
   collection_slug text not null references public.collections(slug),
   timed boolean not null,
   show_places_initially boolean not null,
+  difficulty_filter integer check (difficulty_filter between 1 and 5),
   round_count integer not null check (round_count between 1 and 100),
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default (now() + interval '24 hours')
