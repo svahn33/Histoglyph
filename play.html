@@ -64,12 +64,15 @@
         <div id="round-result" class="round-result" hidden aria-live="assertive">
           <figure id="result-portrait" class="result-portrait" hidden>
             <img id="result-portrait-image" alt="">
-            <figcaption><a id="result-portrait-credit" target="_blank" rel="noopener noreferrer"></a></figcaption>
           </figure>
           <span id="result-status" class="round-result-status">Correct</span>
           <strong id="result-person-name">Historical person</strong>
           <p id="result-metric"><span id="result-points">0</span> <span id="result-unit">points</span></p>
           <small id="result-instruction">Press Enter for the next round</small>
+          <div id="result-portrait-credit-row" class="result-portrait-credit-row" hidden>
+            <span>Image:</span>
+            <a id="result-portrait-credit" target="_blank" rel="noopener noreferrer"></a>
+          </div>
         </div>
       </div>
 
@@ -88,8 +91,8 @@
 
     <section class="answer-card">
       <form id="guess-form">
-        <label for="guess-input">Enter the person's name</label>
-        <p class="guess-help">Three letters from the first name and three from the surname are enough. Example: <strong>Ado Hit</strong>. A wrong guess does not end the round.</p>
+        <label for="guess-input">Enter the person's surname or name</label>
+        <p class="guess-help">The full surname is enough, including forms such as <strong>da Vinci</strong> or <strong>van Gogh</strong>. You can also use three letters from the first name and three from the surname, for example <strong>Ado Hit</strong>.</p>
 
         <div class="input-row">
           <input
@@ -97,7 +100,7 @@
             name="guess"
             type="text"
             autocomplete="off"
-            placeholder="For example: Ado Hit"
+            placeholder="For example: Hitler or da Vinci"
             required
           >
 

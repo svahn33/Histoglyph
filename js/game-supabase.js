@@ -33,12 +33,14 @@ const countdownValue = el("countdown-value");
 const resultOverlay = el("round-result");
 const resultStatusElement = el("result-status");
 const resultPersonNameElement = el("result-person-name");
+const resultMetricElement = el("result-metric");
 const resultPointsElement = el("result-points");
 const resultUnitElement = el("result-unit");
 const resultInstructionElement = el("result-instruction");
 const resultPortrait = el("result-portrait");
 const resultPortraitImage = el("result-portrait-image");
 const resultPortraitCredit = el("result-portrait-credit");
+const resultPortraitCreditRow = el("result-portrait-credit-row");
 const guessForm = el("guess-form");
 const guessInput = el("guess-input");
 const guessButton = el("guess-button");
@@ -102,6 +104,7 @@ function clearResultPortrait() {
   resultPortraitImage.alt = "";
   resultPortraitCredit.textContent = "";
   resultPortraitCredit.removeAttribute("href");
+  resultPortraitCreditRow.hidden = true;
   resultOverlay.classList.remove("round-result--has-portrait");
 }
 function hideResult() {
@@ -128,6 +131,7 @@ function showResultPortrait(result) {
   const sourceUrl = safeHttpUrl(result.image_source_url);
   if (sourceUrl) resultPortraitCredit.href = sourceUrl;
   resultPortrait.hidden = false;
+  resultPortraitCreditRow.hidden = false;
   resultOverlay.classList.add("round-result--has-portrait");
   resultPortraitImage.onerror = () => clearResultPortrait();
 }
@@ -200,11 +204,13 @@ function showRoundResult(result) {
   resultStatusElement.textContent = status;
   resultPersonNameElement.textContent = result.person_name;
   if (timedMode) {
+    resultMetricElement.hidden = false;
     resultPointsElement.textContent = String(result.points || 0);
     resultUnitElement.textContent = "points";
   } else {
-    resultPointsElement.textContent = result.correct ? "1" : "0";
-    resultUnitElement.textContent = "correct this round";
+    // The status badge already says Correct/Answer/Time is up. A per-round
+    // "1 correct this round" metric is redundant in untimed mode.
+    resultMetricElement.hidden = true;
   }
   resultInstructionElement.textContent = currentRound >= roundCount
     ? "Press Enter to see your final result"
@@ -341,6 +347,7 @@ async function revealAnswer() {
 function showGameOver() {
   gameFinished = true;
   nextButton.disabled = true;
+  resultMetricElement.hidden = false;
   resultStatusElement.textContent = "Game over";
   if (timedMode) {
     resultPersonNameElement.textContent = `${score} total points`;
