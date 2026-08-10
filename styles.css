@@ -2364,3 +2364,139 @@ input { padding: 13px 14px; }
     font-size: 0.54rem;
   }
 }
+
+
+/* V30: calmer homepage map composition and smaller clue labels. */
+.home-map-art {
+  display: flex;
+  align-items: stretch;
+}
+
+.hero-map-visual {
+  width: 132%;
+  left: -18%;
+}
+
+.hero-map-route {
+  stroke-width: 3.1;
+  stroke: rgba(29, 64, 51, 0.5);
+}
+
+.hero-map-point {
+  stroke-width: 2.4;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.16));
+}
+
+.hero-map-callout-bg {
+  filter: drop-shadow(0 1px 2px rgba(25, 32, 29, 0.08));
+}
+
+.hero-map-callout-year {
+  font-size: 8.9px;
+  font-weight: 820;
+}
+
+.hero-map-callout-place {
+  font-size: 8.05px;
+  font-weight: 690;
+  letter-spacing: 0.01em;
+}
+
+.hero-map-callout-leader {
+  stroke-width: 0.95;
+  opacity: 0.44;
+}
+
+.hero-person-card {
+  width: min(310px, calc(100% - 34px));
+  right: 18px;
+  bottom: 18px;
+}
+
+.hero-person-card__facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+}
+
+.hero-person-card__facts > .hero-person-card__fact {
+  padding: 12px 14px 13px;
+  gap: 2px;
+}
+
+.hero-person-card__facts .hero-person-card__fact strong {
+  font-size: 1.08rem;
+  line-height: 1.02;
+}
+
+.hero-person-card__facts .hero-person-card__fact small {
+  font-size: 0.8rem;
+  line-height: 1.28;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+@media (max-width: 920px) {
+  .hero-map-visual {
+    width: 136%;
+    left: -22%;
+  }
+
+  .hero-person-card {
+    width: min(282px, calc(100% - 26px));
+    right: 13px;
+    bottom: 13px;
+  }
+
+  .hero-person-card__facts > .hero-person-card__fact {
+    padding: 11px 12px 12px;
+  }
+
+  .hero-person-card__facts .hero-person-card__fact small {
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-map-art {
+    min-height: 300px;
+  }
+
+  .hero-map-visual {
+    width: 152%;
+    left: -29%;
+  }
+
+  .hero-person-card {
+    width: min(236px, calc(100% - 20px));
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .hero-person-card__facts {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero-person-card__facts > .hero-person-card__fact {
+    padding: 9px 9px 10px;
+  }
+
+  .hero-person-card__facts .hero-person-card__fact strong {
+    font-size: 0.9rem;
+  }
+
+  .hero-person-card__facts .hero-person-card__fact small {
+    font-size: 0.63rem;
+    line-height: 1.2;
+  }
+
+  .hero-person-card__facts .hero-person-card__fact-label {
+    font-size: 0.54rem;
+  }
+}
+
+/* V31: only reduce the place-name text inside the homepage map labels. */
+.hero-map-callout-place {
+  font-size: 5.7px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
