@@ -203,7 +203,10 @@ async function loadPerson(id) {
   if (error) return message($("person-validation"), error.message, "error"); state.selectedPerson = data;
   $("person-id").value = data.id; $("person-name").value = data.name; $("person-period").value = data.period; $("person-birth-year").value = data.birth_year; $("person-death-year").value = data.death_year;
   $("person-difficulty").value = data.difficulty; $("person-verification-status").value = data.verification_status; $("person-published").checked = data.published;
-  $("person-accepted-answers").value = (data.accepted_answers || []).map(x => x.answer).join("\n"); $("person-tags").value = (data.person_tags || []).map(x => x.tags?.slug).filter(Boolean).join("\n");
+  $("person-accepted-answers").value = (data.accepted_answers || []).map(x => x.answer).join("\n");
+  $("person-tags").value = (data.person_tags || []).map(x => x.tags?.slug).filter(Boolean).join("\n");
+  $("person-occupations").value = Array.isArray(data.occupations) ? data.occupations.join("\n") : "";
+  $("person-period-tags").value = Array.isArray(data.historical_periods) ? data.historical_periods.join("\n") : "";
   revokePortraitObjectUrl(); state.removePortrait = false; $("person-portrait-file").value = "";
   $("person-image-credit").value = data.image_credit || ""; $("person-image-license").value = data.image_license || ""; $("person-image-source-url").value = data.image_source_url || "";
   showPortraitPreview(data.image_path ? portraitPublicUrl(data.image_path) : ""); $("remove-person-portrait").disabled = !data.image_path;
@@ -240,6 +243,8 @@ async function savePerson(event) {
     published: $("person-published").checked,
     accepted_answers: $("person-accepted-answers").value.split(/\r?\n/).map(x => x.trim()).filter(Boolean),
     tags: $("person-tags").value.split(/\r?\n/).map(normalizeSlug).filter(Boolean),
+    occupations: $("person-occupations").value.split(/\r?\n/).map(normalizeSlug).filter(Boolean),
+    historical_periods: $("person-period-tags").value.split(/\r?\n/).map(normalizeSlug).filter(Boolean),
     image_credit: $("person-image-credit").value.trim() || null,
     image_source_url: $("person-image-source-url").value.trim() || null,
     image_license: $("person-image-license").value.trim() || null
@@ -310,7 +315,7 @@ async function exportData(format) {
   try { message($("transfer-status"),"Preparing export…"); const places=await fetchAll("places"); const persons=await fetchAll("persons","*,accepted_answers(answer),person_tags(tags(slug))");
     if(format==="json") download("histoglyph-supabase-backup.json",JSON.stringify({exported_at:new Date().toISOString(),places,persons},null,2),"application/json");
     if(format==="places") download("places.csv",toCsv(places.map(p=>({id:p.legacy_id||p.id,name:p.name,country:p.country,latitude:p.latitude,longitude:p.longitude,precision:p.precision,verification_status:p.verification_status,source:p.source||"",source_id:p.source_id||"",notes:p.notes||""})),["id","name","country","latitude","longitude","precision","verification_status","source","source_id","notes"]),"text/csv");
-    if(format==="persons") download("persons.csv",toCsv(persons.map(p=>({id:p.legacy_id||p.id,name:p.name,accepted_answers:(p.accepted_answers||[]).map(a=>a.answer).join("|"),tags:(p.person_tags||[]).map(t=>t.tags?.slug).filter(Boolean).join("|"),period:p.period,birth_year:p.birth_year,death_year:p.death_year,birth_place_id:p.birth_place_id,death_place_id:p.death_place_id,difficulty:p.difficulty,verification_status:p.verification_status,published:p.published,image_path:p.image_path||"",image_credit:p.image_credit||"",image_source_url:p.image_source_url||"",image_license:p.image_license||""})),["id","name","accepted_answers","tags","period","birth_year","death_year","birth_place_id","death_place_id","difficulty","verification_status","published","image_path","image_credit","image_source_url","image_license"]),"text/csv");
+    if(format==="persons") download("persons.csv",toCsv(persons.map(p=>({id:p.legacy_id||p.id,name:p.name,accepted_answers:(p.accepted_answers||[]).map(a=>a.answer).join("|"),tags:(p.person_tags||[]).map(t=>t.tags?.slug).filter(Boolean).join("|"),occupations:(Array.isArray(p.occupations)?p.occupations:[]).join("|"),historical_periods:(Array.isArray(p.historical_periods)?p.historical_periods:[]).join("|"),period:p.period,birth_year:p.birth_year,death_year:p.death_year,birth_place_id:p.birth_place_id,death_place_id:p.death_place_id,difficulty:p.difficulty,verification_status:p.verification_status,published:p.published,image_path:p.image_path||"",image_credit:p.image_credit||"",image_source_url:p.image_source_url||"",image_license:p.image_license||""})),["id","name","accepted_answers","tags","occupations","historical_periods","period","birth_year","death_year","birth_place_id","death_place_id","difficulty","verification_status","published","image_path","image_credit","image_source_url","image_license"]),"text/csv");
     message($("transfer-status"),"Export ready.","success");
   } catch(error){message($("transfer-status"),error.message,"error");}
 }

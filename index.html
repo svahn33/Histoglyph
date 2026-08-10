@@ -34,14 +34,44 @@
       </div>
 
       <div class="home-map-art" aria-hidden="true">
-        <!-- The map, line and dots share one Robinson-projection coordinate system.
-             Decorative points: Brasília, Brazil and Cairo, Egypt. -->
+        <!-- Example round: Albert Einstein.
+             Birth point: Ulm, Germany. Death point: Princeton, United States. -->
         <svg class="hero-map-visual" viewBox="0 0 1419.6 719.98" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <image href="assets/detailed-world-map.svg" x="0" y="0" width="1419.6" height="719.98"></image>
-          <path class="hero-map-route" d="M 523.08 430.49 C 612 337, 719 256, 828.03 225.88"></path>
-          <circle class="hero-map-point hero-map-point--death" cx="523.08" cy="430.49" r="10"></circle>
-          <circle class="hero-map-point hero-map-point--birth" cx="828.03" cy="225.88" r="10"></circle>
+          <path class="hero-map-route" d="M 438.94 179.92 C 520 126, 640 118, 744.35 144.59"></path>
+
+          <g class="hero-map-callout hero-map-callout--death" transform="translate(288 126)">
+            <rect x="0" y="0" rx="16" ry="16" width="132" height="54"></rect>
+            <text x="16" y="23">1955</text>
+            <text x="16" y="41" class="hero-map-callout-place">Princeton</text>
+          </g>
+
+          <g class="hero-map-callout hero-map-callout--birth" transform="translate(772 92)">
+            <rect x="0" y="0" rx="16" ry="16" width="108" height="54"></rect>
+            <text x="16" y="23">1879</text>
+            <text x="16" y="41" class="hero-map-callout-place">Ulm</text>
+          </g>
+
+          <circle class="hero-map-point hero-map-point--death" cx="438.94" cy="179.92" r="10"></circle>
+          <circle class="hero-map-point hero-map-point--birth" cx="744.35" cy="144.59" r="10"></circle>
         </svg>
+
+        <article class="hero-person-card">
+          <div class="hero-person-card__image-wrap">
+            <img class="hero-person-card__image" src="https://commons.wikimedia.org/wiki/Special:FilePath/Albert%20Einstein%201921%20portrait2.jpg" alt="Albert Einstein portrait">
+            <div class="hero-person-card__name-badge">Albert Einstein</div>
+          </div>
+          <div class="hero-person-card__facts">
+            <div>
+              <span>Born</span>
+              <strong>1879 · Ulm</strong>
+            </div>
+            <div>
+              <span>Died</span>
+              <strong>1955 · Princeton</strong>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
 

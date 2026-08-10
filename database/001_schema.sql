@@ -57,6 +57,8 @@ create table if not exists public.persons (
   legacy_id text unique,
   name text not null,
   period text not null,
+  occupations text[] not null default '{}'::text[],
+  historical_periods text[] not null default '{}'::text[],
   birth_year integer not null,
   death_year integer not null,
   birth_place_id uuid not null references public.places(id) on update cascade,
@@ -80,6 +82,8 @@ create table if not exists public.persons (
 create index if not exists persons_search_idx on public.persons using gin (search_text gin_trgm_ops);
 create index if not exists persons_published_idx on public.persons (published);
 create index if not exists persons_period_idx on public.persons (period);
+create index if not exists persons_occupations_idx on public.persons using gin (occupations);
+create index if not exists persons_historical_periods_idx on public.persons using gin (historical_periods);
 create index if not exists persons_birth_place_idx on public.persons (birth_place_id);
 create index if not exists persons_death_place_idx on public.persons (death_place_id);
 create index if not exists persons_verification_idx on public.persons (verification_status);
