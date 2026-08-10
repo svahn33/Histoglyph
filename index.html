@@ -40,20 +40,24 @@
           <image href="assets/detailed-world-map.svg" x="0" y="0" width="1419.6" height="719.98"></image>
           <path class="hero-map-route" d="M 438.94 179.92 C 520 126, 640 118, 744.35 144.59"></path>
 
-          <g class="hero-map-callout hero-map-callout--death" transform="translate(458 202)">
-            <rect x="0" y="0" rx="16" ry="16" width="132" height="54"></rect>
-            <text id="hero-death-year" x="16" y="23">1955</text>
-            <text id="hero-death-place" x="16" y="41" class="hero-map-callout-place">Princeton</text>
+          <path class="hero-map-callout-leader hero-map-callout-leader--death" d="M 438.94 179.92 L 427 191"></path>
+          <g class="hero-map-callout hero-map-callout--death" transform="translate(329 190)">
+            <rect class="hero-map-callout-bg" x="0" y="0" rx="9" ry="9" width="96" height="40"></rect>
+            <rect class="hero-map-callout-accent" x="0" y="0" rx="9" ry="9" width="4" height="40"></rect>
+            <text id="hero-death-year" x="12" y="16" class="hero-map-callout-year">1955</text>
+            <text id="hero-death-place" x="12" y="30" class="hero-map-callout-place">Princeton</text>
           </g>
 
-          <g class="hero-map-callout hero-map-callout--birth" transform="translate(632 74)">
-            <rect x="0" y="0" rx="16" ry="16" width="108" height="54"></rect>
-            <text id="hero-birth-year" x="16" y="23">1879</text>
-            <text id="hero-birth-place" x="16" y="41" class="hero-map-callout-place">Ulm</text>
+          <path class="hero-map-callout-leader hero-map-callout-leader--birth" d="M 744.35 144.59 L 755 137"></path>
+          <g class="hero-map-callout hero-map-callout--birth" transform="translate(755 102)">
+            <rect class="hero-map-callout-bg" x="0" y="0" rx="9" ry="9" width="76" height="40"></rect>
+            <rect class="hero-map-callout-accent" x="0" y="0" rx="9" ry="9" width="4" height="40"></rect>
+            <text id="hero-birth-year" x="12" y="16" class="hero-map-callout-year">1879</text>
+            <text id="hero-birth-place" x="12" y="30" class="hero-map-callout-place">Ulm</text>
           </g>
 
-          <circle class="hero-map-point hero-map-point--death" cx="438.94" cy="179.92" r="10"></circle>
-          <circle class="hero-map-point hero-map-point--birth" cx="744.35" cy="144.59" r="10"></circle>
+          <circle class="hero-map-point hero-map-point--death" cx="438.94" cy="179.92" r="6"></circle>
+          <circle class="hero-map-point hero-map-point--birth" cx="744.35" cy="144.59" r="6"></circle>
         </svg>
 
         <article id="hero-person-card" class="hero-person-card hero-person-card--loading">
@@ -63,13 +67,15 @@
             <div id="hero-person-name" class="hero-person-card__name-badge">Albert Einstein</div>
           </div>
           <div class="hero-person-card__facts">
-            <div>
-              <span>Born</span>
-              <strong id="hero-person-birth">1879 · Ulm</strong>
+            <div class="hero-person-card__fact hero-person-card__fact--birth">
+              <span class="hero-person-card__fact-label"><i aria-hidden="true"></i>Born</span>
+              <strong id="hero-person-birth-year">1879</strong>
+              <small id="hero-person-birth-place">Ulm</small>
             </div>
-            <div>
-              <span>Died</span>
-              <strong id="hero-person-death">1955 · Princeton</strong>
+            <div class="hero-person-card__fact hero-person-card__fact--death">
+              <span class="hero-person-card__fact-label"><i aria-hidden="true"></i>Died</span>
+              <strong id="hero-person-death-year">1955</strong>
+              <small id="hero-person-death-place">Princeton</small>
             </div>
           </div>
         </article>

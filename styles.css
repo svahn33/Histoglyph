@@ -1932,3 +1932,435 @@ input { padding: 13px 14px; }
     justify-content: center;
   }
 }
+
+
+/* V27: the settings dialog remains fully usable on small phone screens. */
+.game-settings-dialog {
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
+}
+
+.game-settings-form {
+  max-height: calc(100dvh - 22px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.game-settings-actions {
+  position: sticky;
+  z-index: 4;
+  bottom: 0;
+  margin: 0 -2px -2px;
+  padding: 14px 2px 2px;
+  background: linear-gradient(180deg, rgba(255,253,248,0), var(--surface) 28%);
+}
+
+/* V27: focus the decorative homepage map on the transatlantic Einstein example.
+   Both points remain inside the visible crop on desktop and mobile. */
+.hero-map-visual {
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+.hero-person-card__placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: rgba(29, 64, 51, 0.58);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255,255,255,.86), transparent 34%),
+    linear-gradient(145deg, #dfe8e3, #cbd6d0);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 4rem;
+  font-weight: 700;
+}
+
+.hero-person-card__image[hidden],
+.hero-person-card__placeholder[hidden] {
+  display: none;
+}
+
+.hero-person-card--loaded .hero-person-card__image {
+  animation: heroPortraitFade .28s ease-out both;
+}
+
+@keyframes heroPortraitFade {
+  from { opacity: 0; transform: scale(1.015); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  .game-settings-dialog {
+    width: calc(100% - 16px);
+    max-height: calc(100dvh - 12px);
+    border-radius: 18px;
+  }
+
+  .game-settings-form {
+    max-height: calc(100dvh - 14px);
+    padding: 18px 16px 14px;
+  }
+
+  .game-settings-heading {
+    gap: 10px;
+  }
+
+  .game-settings-heading h2 {
+    font-size: 1.8rem;
+  }
+
+  .game-settings-options {
+    gap: 8px;
+  }
+
+  .game-setting-option {
+    padding: 13px;
+  }
+
+  .game-setting-option--number,
+  .game-setting-option--select {
+    align-items: center;
+  }
+
+  .game-settings-note {
+    font-size: .78rem;
+  }
+
+  .game-settings-actions {
+    gap: 8px;
+    padding-top: 18px;
+  }
+
+  .home-map-art {
+    min-height: 390px;
+  }
+
+  .hero-map-visual {
+    width: 100%;
+    left: 0;
+  }
+
+  .hero-map-callout {
+    display: block;
+  }
+
+  .hero-person-card {
+    right: 12px;
+    bottom: 12px;
+    width: min(205px, calc(100% - 24px));
+  }
+
+  .hero-person-card__image-wrap {
+    aspect-ratio: 4 / 3.25;
+  }
+
+  .hero-person-card__facts > div {
+    padding: 9px 10px;
+  }
+
+  .hero-person-card__facts span {
+    font-size: .64rem;
+  }
+
+  .hero-person-card__facts strong {
+    font-size: .8rem;
+  }
+}
+
+
+/* V28: polished homepage location labels and proportional life facts. */
+.hero-map-callout-bg {
+  fill: rgba(255, 255, 255, 0.97);
+  stroke: rgba(32, 37, 34, 0.16);
+  stroke-width: 1.1;
+  filter: drop-shadow(0 3px 5px rgba(25, 32, 29, 0.13));
+}
+
+.hero-map-callout-accent {
+  stroke: none;
+}
+
+.hero-map-callout--birth .hero-map-callout-accent { fill: var(--birth); }
+.hero-map-callout--death .hero-map-callout-accent { fill: var(--death); }
+
+.hero-map-callout-leader {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.62;
+  vector-effect: non-scaling-stroke;
+}
+.hero-map-callout-leader--birth { stroke: var(--birth); }
+.hero-map-callout-leader--death { stroke: var(--death); }
+
+.hero-map-callout text {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+.hero-map-callout-year {
+  fill: #202522;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.hero-map-callout-place {
+  fill: #626965;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.hero-person-card__facts {
+  gap: 0;
+  background: #fffdf8;
+  border-top: 1px solid rgba(32, 37, 34, 0.10);
+}
+
+.hero-person-card__fact {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "label label"
+    "year place";
+  align-items: baseline;
+  column-gap: 7px;
+  row-gap: 3px;
+  min-width: 0;
+  padding: 12px 14px 13px;
+  background: #fffdf8;
+}
+
+.hero-person-card__fact + .hero-person-card__fact {
+  border-left: 1px solid rgba(32, 37, 34, 0.10);
+}
+
+.hero-person-card__fact-label {
+  grid-area: label;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #737a76;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.095em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.hero-person-card__fact-label i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.hero-person-card__fact--birth .hero-person-card__fact-label i { background: var(--birth); }
+.hero-person-card__fact--death .hero-person-card__fact-label i { background: var(--death); }
+
+.hero-person-card__fact strong {
+  grid-area: year;
+  margin: 0;
+  color: #202522;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hero-person-card__fact small {
+  grid-area: place;
+  min-width: 0;
+  overflow: hidden;
+  color: #59605c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .hero-person-card__facts {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero-person-card__fact {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "label"
+      "year"
+      "place";
+    gap: 3px;
+    padding: 10px 10px 11px;
+  }
+
+  .hero-person-card__fact + .hero-person-card__fact {
+    border-top: 0;
+    border-left: 1px solid rgba(32, 37, 34, 0.10);
+  }
+
+  .hero-person-card__fact strong {
+    font-size: 0.98rem;
+  }
+
+  .hero-person-card__fact small {
+    font-size: 0.68rem;
+  }
+
+  .hero-person-card__fact-label {
+    font-size: 0.56rem;
+  }
+}
+
+/* V28 specificity guards against the older V26 hero rules. */
+.hero-map-callout .hero-map-callout-bg {
+  fill: rgba(255, 255, 255, 0.97);
+  stroke: rgba(32, 37, 34, 0.16);
+  stroke-width: 1.1;
+}
+.hero-map-callout .hero-map-callout-accent { stroke: none; }
+.hero-map-callout--birth .hero-map-callout-bg,
+.hero-map-callout--death .hero-map-callout-bg { stroke: rgba(32, 37, 34, 0.16); }
+
+.hero-person-card__facts > .hero-person-card__fact {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "label label" "year place";
+  align-items: baseline;
+  column-gap: 7px;
+  row-gap: 3px;
+  min-width: 0;
+  padding: 12px 14px 13px;
+  background: #fffdf8;
+}
+.hero-person-card__facts .hero-person-card__fact-label {
+  grid-area: label;
+  display: flex;
+  margin: 0;
+  color: #737a76;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.095em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.hero-person-card__facts .hero-person-card__fact strong {
+  grid-area: year;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  line-height: 1;
+}
+.hero-person-card__facts .hero-person-card__fact small {
+  grid-area: place;
+  color: #59605c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+@media (max-width: 640px) {
+  .hero-person-card__facts > .hero-person-card__fact {
+    grid-template-columns: 1fr;
+    grid-template-areas: "label" "year" "place";
+    gap: 3px;
+    padding: 10px 10px 11px;
+  }
+  .hero-person-card__facts .hero-person-card__fact strong { font-size: 0.98rem; }
+  .hero-person-card__facts .hero-person-card__fact small { font-size: 0.68rem; }
+  .hero-person-card__facts .hero-person-card__fact-label { font-size: 0.56rem; }
+}
+
+
+/* V29: smaller map clues and fully readable birth/death locations. */
+.hero-map-point {
+  stroke-width: 3;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+}
+
+.hero-map-callout-bg {
+  filter: drop-shadow(0 2px 4px rgba(25, 32, 29, 0.10));
+}
+
+.hero-map-callout-year {
+  font-size: 10.5px;
+  font-weight: 850;
+}
+
+.hero-map-callout-place {
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.hero-map-callout-leader {
+  stroke-width: 1.15;
+  opacity: 0.52;
+}
+
+/* Give the life facts the width they need and never truncate a place name. */
+.hero-person-card {
+  width: min(292px, calc(100% - 40px));
+}
+
+.hero-person-card__facts {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.hero-person-card__facts > .hero-person-card__fact {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "label"
+    "year"
+    "place";
+  align-content: start;
+  gap: 4px;
+  padding: 12px 13px 14px;
+}
+
+.hero-person-card__facts .hero-person-card__fact strong {
+  font-size: 1.02rem;
+  line-height: 1.05;
+}
+
+.hero-person-card__facts .hero-person-card__fact small {
+  display: block;
+  min-width: 0;
+  overflow: visible;
+  color: #555d58;
+  font-size: 0.76rem;
+  font-weight: 720;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .hero-person-card {
+    width: min(232px, calc(100% - 24px));
+  }
+
+  .hero-person-card__facts > .hero-person-card__fact {
+    gap: 3px;
+    padding: 10px 10px 12px;
+  }
+
+  .hero-person-card__facts .hero-person-card__fact strong {
+    font-size: 0.92rem;
+  }
+
+  .hero-person-card__facts .hero-person-card__fact small {
+    font-size: 0.67rem;
+    line-height: 1.22;
+  }
+
+  .hero-person-card__facts .hero-person-card__fact-label {
+    font-size: 0.54rem;
+  }
+}

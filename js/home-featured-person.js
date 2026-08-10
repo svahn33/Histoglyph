@@ -5,8 +5,10 @@ const card = document.querySelector("#hero-person-card");
 const image = document.querySelector("#hero-person-image");
 const placeholder = document.querySelector("#hero-person-image-placeholder");
 const name = document.querySelector("#hero-person-name");
-const birth = document.querySelector("#hero-person-birth");
-const death = document.querySelector("#hero-person-death");
+const personBirthYear = document.querySelector("#hero-person-birth-year");
+const personBirthPlace = document.querySelector("#hero-person-birth-place");
+const personDeathYear = document.querySelector("#hero-person-death-year");
+const personDeathPlace = document.querySelector("#hero-person-death-place");
 const birthYear = document.querySelector("#hero-birth-year");
 const birthPlace = document.querySelector("#hero-birth-place");
 const deathYear = document.querySelector("#hero-death-year");
@@ -31,8 +33,10 @@ async function loadFeaturedPerson() {
   }
 
   setText(name, data.name);
-  setText(birth, `${data.birth_year} · ${data.birth_place_name}`);
-  setText(death, `${data.death_year} · ${data.death_place_name}`);
+  setText(personBirthYear, data.birth_year);
+  setText(personBirthPlace, data.birth_place_name);
+  setText(personDeathYear, data.death_year);
+  setText(personDeathPlace, data.death_place_name);
   setText(birthYear, data.birth_year);
   setText(birthPlace, data.birth_place_name);
   setText(deathYear, data.death_year);
