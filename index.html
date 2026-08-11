@@ -33,52 +33,8 @@
         <a class="primary-button hero-button" href="#game-modes">Explore game modes</a>
       </div>
 
-      <div class="home-map-art" aria-hidden="true">
-        <!-- Example round: Albert Einstein.
-             Birth point: Ulm, Germany. Death point: Princeton, United States. -->
-        <svg class="hero-map-visual" viewBox="285 58 650 430" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <image href="assets/detailed-world-map.svg" x="0" y="0" width="1419.6" height="719.98"></image>
-          <path class="hero-map-route" d="M 438.94 179.92 C 520 126, 640 118, 744.35 144.59"></path>
-
-          <path class="hero-map-callout-leader hero-map-callout-leader--death" d="M 438.94 179.92 L 455 165"></path>
-          <g class="hero-map-callout hero-map-callout--death" transform="translate(455 131)">
-            <rect class="hero-map-callout-bg" x="0" y="0" rx="8" ry="8" width="80" height="33"></rect>
-            <rect class="hero-map-callout-accent" x="0" y="0" rx="8" ry="8" width="3.5" height="33"></rect>
-            <text id="hero-death-year" x="10" y="14" class="hero-map-callout-year">1955</text>
-            <text id="hero-death-place" x="10" y="25.5" class="hero-map-callout-place">Princeton</text>
-          </g>
-
-          <path class="hero-map-callout-leader hero-map-callout-leader--birth" d="M 744.35 144.59 L 756 136"></path>
-          <g class="hero-map-callout hero-map-callout--birth" transform="translate(756 106)">
-            <rect class="hero-map-callout-bg" x="0" y="0" rx="8" ry="8" width="62" height="33"></rect>
-            <rect class="hero-map-callout-accent" x="0" y="0" rx="8" ry="8" width="3.5" height="33"></rect>
-            <text id="hero-birth-year" x="10" y="14" class="hero-map-callout-year">1879</text>
-            <text id="hero-birth-place" x="10" y="25.5" class="hero-map-callout-place">Ulm</text>
-          </g>
-
-          <circle class="hero-map-point hero-map-point--death" cx="438.94" cy="179.92" r="4.4"></circle>
-          <circle class="hero-map-point hero-map-point--birth" cx="744.35" cy="144.59" r="4.4"></circle>
-        </svg>
-
-        <article id="hero-person-card" class="hero-person-card hero-person-card--loading">
-          <div class="hero-person-card__image-wrap">
-            <div id="hero-person-image-placeholder" class="hero-person-card__placeholder" aria-hidden="true">AE</div>
-            <img id="hero-person-image" class="hero-person-card__image" alt="Albert Einstein portrait" hidden>
-            <div id="hero-person-name" class="hero-person-card__name-badge">Albert Einstein</div>
-          </div>
-          <div class="hero-person-card__facts">
-            <div class="hero-person-card__fact hero-person-card__fact--birth">
-              <span class="hero-person-card__fact-label"><i aria-hidden="true"></i>Born</span>
-              <strong id="hero-person-birth-year">1879</strong>
-              <small id="hero-person-birth-place">Ulm</small>
-            </div>
-            <div class="hero-person-card__fact hero-person-card__fact--death">
-              <span class="hero-person-card__fact-label"><i aria-hidden="true"></i>Died</span>
-              <strong id="hero-person-death-year">1955</strong>
-              <small id="hero-person-death-place">Princeton</small>
-            </div>
-          </div>
-        </article>
+      <div class="home-map-art home-map-art--map-only" aria-hidden="true">
+        <img class="hero-map-only" src="assets/detailed-world-map.svg" alt="">
       </div>
     </section>
 
@@ -100,6 +56,5 @@
   </footer>
 
   <script defer src="js/home.bundle.js"></script>
-  <script type="module" src="js/home-featured-person.js"></script>
 </body>
 </html>
