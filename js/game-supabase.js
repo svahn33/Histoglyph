@@ -33,6 +33,7 @@ const countdownValue = el("countdown-value");
 const resultOverlay = el("round-result");
 const resultStatusElement = el("result-status");
 const resultPersonNameElement = el("result-person-name");
+const resultOccupationsElement = el("result-occupations");
 const resultMetricElement = el("result-metric");
 const resultPointsElement = el("result-points");
 const resultUnitElement = el("result-unit");
@@ -109,6 +110,8 @@ function clearResultPortrait() {
 }
 function hideResult() {
   resultOverlay.hidden = true;
+  resultOccupationsElement.textContent = "";
+  resultOccupationsElement.hidden = true;
   resultOverlay.classList.remove("round-result--correct","round-result--incorrect","round-result--neutral","round-result--game-over","round-result--has-portrait");
   clearResultPortrait();
 }
@@ -135,6 +138,24 @@ function showResultPortrait(result) {
   resultOverlay.classList.add("round-result--has-portrait");
   resultPortraitImage.onerror = () => clearResultPortrait();
 }
+
+function formatOccupationTag(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, character => character.toUpperCase());
+}
+
+function showResultOccupations(result) {
+  const occupations = Array.isArray(result?.occupations)
+    ? result.occupations.map(formatOccupationTag).filter(Boolean)
+    : [];
+
+  resultOccupationsElement.textContent = occupations.slice(0, 3).join(" · ");
+  resultOccupationsElement.hidden = occupations.length === 0;
+}
+
 function fullPlaceName(name, country) {
   return [name, country].filter(Boolean).join(", ");
 }
@@ -203,6 +224,7 @@ function showRoundResult(result) {
   const [status, statusClass] = statusFromOutcome(result.outcome);
   resultStatusElement.textContent = status;
   resultPersonNameElement.textContent = result.person_name;
+  showResultOccupations(result);
   if (timedMode) {
     resultMetricElement.hidden = false;
     resultPointsElement.textContent = String(result.points || 0);

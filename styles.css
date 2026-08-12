@@ -2548,3 +2548,35 @@ input { padding: 13px 14px; }
     padding: 12px;
   }
 }
+
+
+/* V35: occupation line in the completed-round result card. */
+.result-occupations {
+  margin: -1px 0 2px;
+  color: var(--muted);
+  font-size: 0.86rem !important;
+  font-weight: 760 !important;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+.result-occupations[hidden] { display: none; }
+
+.round-result.round-result--has-portrait {
+  grid-template-rows: auto auto auto auto auto auto;
+}
+.round-result--has-portrait > .result-occupations {
+  grid-column: 2;
+}
+.result-portrait {
+  grid-row: 1 / span 5;
+}
+
+@media (max-width: 640px) {
+  .round-result--has-portrait > .result-occupations {
+    grid-column: 1;
+    text-align: center;
+  }
+  .result-occupations {
+    font-size: 0.78rem !important;
+  }
+}
