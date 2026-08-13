@@ -17,7 +17,7 @@
   <main class="game-shell">
     <header class="game-header game-header--play">
       <div>
-        <a class="play-brand" href="index.html"><span class="brand-mark">H</span><span>Histoglyph</span></a>
+        <a class="play-brand" href="index.html"><img class="brand-logo" src="assets/Histoglyph_image.png" alt="" aria-hidden="true"><span>Histoglyph</span></a>
         <nav class="breadcrumbs breadcrumbs--play" aria-label="Breadcrumb">
           <a href="index.html">Home</a><span>›</span><a href="life-map.html">Life &amp; Death Map</a><span>›</span><span id="collection-breadcrumb">World History</span>
         </nav>
@@ -32,7 +32,7 @@
       </div>
       <div class="header-actions">
         <a class="secondary-button link-button" href="life-map.html">Change collection</a>
-        <button id="new-game-button" class="secondary-button" type="button">New game</button>
+        <button id="new-game-button" class="secondary-button" type="button">Restart</button>
       </div>
     </header>
 
@@ -133,6 +133,47 @@
       <div id="feedback" class="feedback" aria-live="polite"></div>
     </section>
   </main>
+
+
+  <div id="game-summary-modal" class="game-summary-modal" hidden role="dialog" aria-modal="true" aria-labelledby="game-summary-title">
+    <div class="game-summary-backdrop" aria-hidden="true"></div>
+    <section class="game-summary-card">
+      <div class="game-summary-confetti" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span class="game-summary-kicker">Game complete</span>
+      <h2 id="game-summary-title">That’s history!</h2>
+      <p id="game-summary-collection" class="game-summary-collection">World History · 5 rounds</p>
+      <p id="game-summary-message" class="game-summary-message">A fine run through history.</p>
+
+      <div class="game-summary-main">
+        <span id="game-summary-main-label">Total score</span>
+        <strong id="game-summary-main-value">0</strong>
+        <small id="game-summary-main-detail"></small>
+      </div>
+
+      <div class="game-summary-stats" aria-label="Game summary">
+        <div>
+          <span>Correct</span>
+          <strong id="game-summary-correct">0 / 0</strong>
+        </div>
+        <div>
+          <span>Accuracy</span>
+          <strong id="game-summary-accuracy">0%</strong>
+        </div>
+        <div>
+          <span>Mode</span>
+          <strong id="game-summary-mode">Timed</strong>
+        </div>
+      </div>
+
+      <div class="game-summary-actions">
+        <button id="play-again-button" class="primary-button game-summary-play-again" type="button">Play again</button>
+        <a class="secondary-button link-button" href="life-map.html">Change collection</a>
+      </div>
+    </section>
+  </div>
+
   <script type="module" src="js/game-supabase.js"></script>
 </body>
 </html>

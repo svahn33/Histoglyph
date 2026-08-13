@@ -53,6 +53,16 @@ const dataWarning = el("data-warning");
 const collectionTitle = el("collection-title");
 const collectionDescription = el("collection-description");
 const collectionBreadcrumb = el("collection-breadcrumb");
+const gameSummaryModal = el("game-summary-modal");
+const gameSummaryCollection = el("game-summary-collection");
+const gameSummaryMessage = el("game-summary-message");
+const gameSummaryMainLabel = el("game-summary-main-label");
+const gameSummaryMainValue = el("game-summary-main-value");
+const gameSummaryMainDetail = el("game-summary-main-detail");
+const gameSummaryCorrect = el("game-summary-correct");
+const gameSummaryAccuracy = el("game-summary-accuracy");
+const gameSummaryMode = el("game-summary-mode");
+const playAgainButton = el("play-again-button");
 
 const supabase = requireSupabase();
 const worldMap = new DetailedWorldMap(el("game-map"));
@@ -189,6 +199,7 @@ async function renderClue(clue, revealNames = false, result = null) {
 }
 function prepareRound() {
   roundFinished = true;
+  nextButton.textContent = "Next person";
   gameFinished = false;
   stopTimer();
   setControls(false);
@@ -234,9 +245,11 @@ function showRoundResult(result) {
     // "1 correct this round" metric is redundant in untimed mode.
     resultMetricElement.hidden = true;
   }
-  resultInstructionElement.textContent = currentRound >= roundCount
-    ? "Press Enter to see your final result"
+  const isFinalRound = currentRound >= roundCount;
+  resultInstructionElement.textContent = isFinalRound
+    ? "Press Enter or choose See results"
     : "Press Enter for the next round";
+  nextButton.textContent = isFinalRound ? "See results" : "Next person";
   resultOverlay.classList.add(`round-result--${statusClass}`);
   showResultPortrait(result);
   resultOverlay.hidden = false;
@@ -311,7 +324,9 @@ async function startNewGame() {
   roundSequence += 1;
   stopTimer();
   countdownOverlay.hidden = true;
+  hideGameSummary();
   hideResult();
+  nextButton.textContent = "Next person";
   setFeedback("Creating game…");
   const { data, error } = await supabase.rpc("start_life_map_game", {
     p_collection_slug: collectionSlug,
@@ -366,24 +381,45 @@ async function revealAnswer() {
   if (error) { setControls(true); return handleError(error); }
   await finishRound(data);
 }
+function endMessage(accuracy) {
+  if (accuracy >= 100) return "Perfect run — you did not miss a single person.";
+  if (accuracy >= 80) return "Excellent work — history clearly knows your name.";
+  if (accuracy >= 60) return "Strong finish — a very solid run through history.";
+  if (accuracy >= 40) return "Nice work — you uncovered a good part of the story.";
+  return "Every round adds another piece to the historical puzzle.";
+}
+
+function hideGameSummary() {
+  gameSummaryModal.hidden = true;
+  document.body.classList.remove("game-summary-open");
+}
+
 function showGameOver() {
   gameFinished = true;
   nextButton.disabled = true;
-  resultMetricElement.hidden = false;
-  resultStatusElement.textContent = "Game over";
+  resultOverlay.hidden = true;
+
+  const accuracy = roundCount > 0 ? Math.round((correctAnswers / roundCount) * 100) : 0;
+  gameSummaryCollection.textContent = `${collectionTitle.textContent} · ${roundCount} ${roundCount === 1 ? "round" : "rounds"}`;
+  gameSummaryMessage.textContent = endMessage(accuracy);
+  gameSummaryCorrect.textContent = `${correctAnswers} / ${roundCount}`;
+  gameSummaryAccuracy.textContent = `${accuracy}%`;
+  gameSummaryMode.textContent = timedMode ? "Timed" : "Untimed";
+
   if (timedMode) {
-    resultPersonNameElement.textContent = `${score} total points`;
-    resultPointsElement.textContent = String(score);
-    resultUnitElement.textContent = `points out of ${roundCount * MAX_ROUND_POINTS}`;
+    const maximumScore = roundCount * MAX_ROUND_POINTS;
+    gameSummaryMainLabel.textContent = "Total score";
+    gameSummaryMainValue.textContent = score.toLocaleString("en-US");
+    gameSummaryMainDetail.textContent = `out of ${maximumScore.toLocaleString("en-US")} possible points`;
   } else {
-    resultPersonNameElement.textContent = `${correctAnswers} of ${roundCount} correct`;
-    resultPointsElement.textContent = String(correctAnswers);
-    resultUnitElement.textContent = `correct out of ${roundCount}`;
+    gameSummaryMainLabel.textContent = "Final result";
+    gameSummaryMainValue.textContent = `${correctAnswers} / ${roundCount}`;
+    gameSummaryMainDetail.textContent = `${accuracy}% correct`;
   }
-  resultInstructionElement.textContent = "Choose New game to play again";
-  clearResultPortrait();
-  resultOverlay.className = "round-result round-result--game-over";
-  resultOverlay.hidden = false;
+
+  gameSummaryModal.hidden = false;
+  document.body.classList.add("game-summary-open");
+  requestAnimationFrame(() => playAgainButton.focus());
 }
 async function advanceAfterRound() {
   if (!roundFinished || resultOverlay.hidden || gameFinished) return;
@@ -417,6 +453,7 @@ guessForm.addEventListener("submit", event => {
 revealButton.addEventListener("click", revealAnswer);
 nextButton.addEventListener("click", advanceAfterRound);
 newGameButton.addEventListener("click", startNewGame);
+playAgainButton.addEventListener("click", startNewGame);
 document.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.repeat && roundFinished && !resultOverlay.hidden && !gameFinished) {
     event.preventDefault();
