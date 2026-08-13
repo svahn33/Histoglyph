@@ -45,9 +45,9 @@ export const LIFE_MAP_COLLECTIONS = [
     group: "North America",
     title: "American Presidents",
     description:
-      "Presidents of the United States, identified through their life dates and locations.",
-    status: "coming-soon",
-    roundLimit: 5,
+      "Deceased presidents of the United States, identified through their life dates and locations.",
+    status: "available",
+    roundLimit: 10,
     filter: { anyTags: ["american-president"] }
   },
   {
