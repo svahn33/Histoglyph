@@ -85,13 +85,19 @@
           <input id="setting-show-places" type="checkbox">
         </label>
 
-        <label class="game-setting-option game-setting-option--number" for="setting-rounds">
+        <div class="game-setting-option game-setting-option--number">
           <span class="game-setting-copy">
             <strong>Number of rounds</strong>
-            <small>Choose how many people you want to play. If the collection is smaller, people may reappear.</small>
+            <small>Choose 1–100 rounds, or include every person that matches the selected collection and filters.</small>
           </span>
-          <input id="setting-rounds" class="game-setting-number" type="number" min="1" max="100" step="1" value="5" inputmode="numeric">
-        </label>
+          <div class="round-count-control">
+            <input id="setting-rounds" class="game-setting-number" type="number" min="1" max="100" step="1" value="5" inputmode="numeric" aria-label="Number of rounds">
+            <label class="include-all-control" for="setting-include-all">
+              <input id="setting-include-all" type="checkbox">
+              <span>Include all</span>
+            </label>
+          </div>
+        </div>
 
         <label class="game-setting-option game-setting-option--select" for="setting-difficulty">
           <span class="game-setting-copy">
@@ -107,6 +113,25 @@
             <option value="5">5 — Very hard</option>
           </select>
         </label>
+
+        <div class="game-setting-option game-setting-option--birth-range">
+          <span class="game-setting-copy">
+            <strong>Birth year range</strong>
+            <small>Only include people born between the selected years. The range adapts to the current collection.</small>
+          </span>
+          <div class="birth-year-range-control">
+            <div class="birth-year-range-values">
+              <input id="birth-year-min-entry" class="birth-year-entry" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Earliest birth year" value="Loading…" disabled>
+              <span aria-hidden="true">–</span>
+              <input id="birth-year-max-entry" class="birth-year-entry" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Latest birth year" value="Loading…" disabled>
+            </div>
+            <div id="birth-year-dual-range" class="birth-year-dual-range">
+              <div class="birth-year-range-track" aria-hidden="true"><span></span></div>
+              <input id="setting-birth-year-min" type="range" min="-500" max="2000" step="1" value="-500" aria-label="Earliest birth year" disabled>
+              <input id="setting-birth-year-max" type="range" min="-500" max="2000" step="1" value="2000" aria-label="Latest birth year" disabled>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="game-settings-note" id="game-settings-note">
@@ -115,7 +140,7 @@
 
       <div class="game-settings-actions">
         <button id="cancel-game-settings" class="secondary-button" type="button">Cancel</button>
-        <button class="primary-button" type="submit">Start game</button>
+        <button id="start-game-settings" class="primary-button" type="submit">Start game</button>
       </div>
     </form>
   </dialog>

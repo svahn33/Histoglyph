@@ -12,10 +12,15 @@ const collectionSlug = parameters.get("collection") || "world-history";
 const timedMode = parameters.get("timed") !== "0";
 const showPlacesInitially = parameters.get("showPlaces") === "1";
 const requestedRounds = Math.max(1, Math.min(100, Number.parseInt(parameters.get("rounds"), 10) || 5));
+const includeAllPeople = parameters.get("includeAll") === "1";
 const requestedDifficultyValue = Number.parseInt(parameters.get("difficulty"), 10);
 const difficultyFilter = Number.isInteger(requestedDifficultyValue) && requestedDifficultyValue >= 1 && requestedDifficultyValue <= 5
   ? requestedDifficultyValue
   : null;
+const requestedBirthYearMin = Number.parseInt(parameters.get("birthFrom"), 10);
+const requestedBirthYearMax = Number.parseInt(parameters.get("birthTo"), 10);
+const birthYearMinFilter = Number.isInteger(requestedBirthYearMin) ? requestedBirthYearMin : null;
+const birthYearMaxFilter = Number.isInteger(requestedBirthYearMax) ? requestedBirthYearMax : null;
 
 const el = id => document.querySelector(`#${id}`);
 const roundNumberElement = el("round-number");
@@ -28,6 +33,7 @@ const timingSettingSummary = el("timing-setting-summary");
 const placeSettingSummary = el("place-setting-summary");
 const roundSettingSummary = el("round-setting-summary");
 const difficultySettingSummary = el("difficulty-setting-summary");
+const birthYearSettingSummary = el("birth-year-setting-summary");
 const countdownOverlay = el("round-countdown");
 const countdownValue = el("countdown-value");
 const resultOverlay = el("round-result");
@@ -320,6 +326,20 @@ async function startRound() {
   if (!(await runCountdown(sequence))) return;
   await startActiveRound(sequence);
 }
+
+function formatHistoricalYear(value) {
+  const year = Number(value);
+  if (!Number.isFinite(year)) return "—";
+  return year < 0 ? `${Math.abs(year)} BC` : String(year);
+}
+
+function birthYearRangeText() {
+  if (birthYearMinFilter === null && birthYearMaxFilter === null) return "All birth years";
+  if (birthYearMinFilter === null) return `Born up to ${formatHistoricalYear(birthYearMaxFilter)}`;
+  if (birthYearMaxFilter === null) return `Born from ${formatHistoricalYear(birthYearMinFilter)}`;
+  return `Born ${formatHistoricalYear(birthYearMinFilter)}–${formatHistoricalYear(birthYearMaxFilter)}`;
+}
+
 async function startNewGame() {
   roundSequence += 1;
   stopTimer();
@@ -333,7 +353,10 @@ async function startNewGame() {
     p_round_count: requestedRounds,
     p_timed: timedMode,
     p_show_places: showPlacesInitially,
-    p_difficulty: difficultyFilter
+    p_difficulty: difficultyFilter,
+    p_birth_year_min: birthYearMinFilter,
+    p_birth_year_max: birthYearMaxFilter,
+    p_include_all: includeAllPeople
   });
   if (error) return handleError(error);
   sessionId = data.session_id;
@@ -400,7 +423,7 @@ function showGameOver() {
   resultOverlay.hidden = true;
 
   const accuracy = roundCount > 0 ? Math.round((correctAnswers / roundCount) * 100) : 0;
-  gameSummaryCollection.textContent = `${collectionTitle.textContent} · ${roundCount} ${roundCount === 1 ? "round" : "rounds"}`;
+  gameSummaryCollection.textContent = `${collectionTitle.textContent} · ${roundCount} ${roundCount === 1 ? "round" : "rounds"} · ${birthYearRangeText()}`;
   gameSummaryMessage.textContent = endMessage(accuracy);
   gameSummaryCorrect.textContent = `${correctAnswers} / ${roundCount}`;
   gameSummaryAccuracy.textContent = `${accuracy}%`;
@@ -438,10 +461,11 @@ function handleError(error) {
 timerHudItem.hidden = !timedMode;
 timingSettingSummary.textContent = timedMode ? "Timed · 20 seconds" : "Untimed · correct answers only";
 placeSettingSummary.textContent = showPlacesInitially ? "Place names shown from the start" : "Place names hidden until the answer";
-roundSettingSummary.textContent = `${requestedRounds} rounds`;
+roundSettingSummary.textContent = includeAllPeople ? "All matching people" : `${requestedRounds} rounds`;
 difficultySettingSummary.textContent = difficultyFilter === null
   ? "All difficulties"
   : `Difficulty ${difficultyFilter}`;
+birthYearSettingSummary.textContent = birthYearRangeText();
 scoreLabelElement.textContent = timedMode ? "Total score" : "Correct";
 document.body.classList.toggle("untimed-game", !timedMode);
 

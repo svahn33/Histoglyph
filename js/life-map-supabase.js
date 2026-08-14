@@ -11,11 +11,142 @@ const settingsDescription = document.querySelector("#game-settings-description")
 const timedInput = document.querySelector("#setting-timed");
 const showPlacesInput = document.querySelector("#setting-show-places");
 const roundsInput = document.querySelector("#setting-rounds");
+const includeAllInput = document.querySelector("#setting-include-all");
 const difficultyInput = document.querySelector("#setting-difficulty");
+const birthYearMinInput = document.querySelector("#setting-birth-year-min");
+const birthYearMaxInput = document.querySelector("#setting-birth-year-max");
+const birthYearMinEntry = document.querySelector("#birth-year-min-entry");
+const birthYearMaxEntry = document.querySelector("#birth-year-max-entry");
+const birthYearDualRange = document.querySelector("#birth-year-dual-range");
 const settingsNote = document.querySelector("#game-settings-note");
+const startSettingsButton = document.querySelector("#start-game-settings");
 const closeSettingsButton = document.querySelector("#close-game-settings");
 const cancelSettingsButton = document.querySelector("#cancel-game-settings");
 const groupOrder = ["Global", "North America", "South America", "Europe", "Africa", "Asia", "Oceania"];
+const birthBoundsCache = new Map();
+let activeBirthBounds = null;
+
+function formatHistoricalYear(value) {
+  const year = Number(value);
+  if (!Number.isFinite(year)) return "—";
+  return year < 0 ? `${Math.abs(year)} BC` : String(year);
+}
+
+function parseHistoricalYear(rawValue) {
+  const raw = String(rawValue ?? "").trim();
+  if (!raw) return null;
+  const normalized = raw.replace(/,/g, "").replace(/\s+/g, " ").toUpperCase();
+  const bcMatch = normalized.match(/^([+-]?\d+)\s*(BC|BCE)$/);
+  if (bcMatch) return -Math.abs(Number.parseInt(bcMatch[1], 10));
+  const adPrefixMatch = normalized.match(/^(AD|CE)\s*([+-]?\d+)$/);
+  if (adPrefixMatch) return Math.abs(Number.parseInt(adPrefixMatch[2], 10));
+  const adSuffixMatch = normalized.match(/^([+-]?\d+)\s*(AD|CE)$/);
+  if (adSuffixMatch) return Math.abs(Number.parseInt(adSuffixMatch[1], 10));
+  if (/^[+-]?\d+$/.test(normalized)) return Number.parseInt(normalized, 10);
+  return null;
+}
+
+function setBirthRangeLoading(isLoading) {
+  birthYearMinInput.disabled = isLoading;
+  birthYearMaxInput.disabled = isLoading;
+  birthYearMinEntry.disabled = isLoading;
+  birthYearMaxEntry.disabled = isLoading;
+  startSettingsButton.disabled = isLoading;
+  if (isLoading) {
+    birthYearMinEntry.value = "Loading…";
+    birthYearMaxEntry.value = "Loading…";
+  }
+}
+
+function updateBirthRangeTrack(minValue, maxValue) {
+  if (!activeBirthBounds) return;
+  const span = Math.max(1, activeBirthBounds.max - activeBirthBounds.min);
+  const minRatio = Math.max(0, Math.min(1, (minValue - activeBirthBounds.min) / span));
+  const maxRatio = Math.max(0, Math.min(1, (maxValue - activeBirthBounds.min) / span));
+  const usableWidth = Math.max(0, birthYearDualRange.clientWidth);
+  const startPx = minRatio * usableWidth;
+  const widthPx = Math.max(0, (maxRatio - minRatio) * usableWidth);
+  birthYearDualRange.style.setProperty("--range-start-px", `${startPx}px`);
+  birthYearDualRange.style.setProperty("--range-width-px", `${widthPx}px`);
+}
+
+function updateBirthRange(changedInput = null, { preserveEntry = null } = {}) {
+  if (!activeBirthBounds) return;
+  let minValue = Number.parseInt(birthYearMinInput.value, 10);
+  let maxValue = Number.parseInt(birthYearMaxInput.value, 10);
+
+  if (minValue > maxValue) {
+    if (changedInput === birthYearMinInput) {
+      maxValue = minValue;
+      birthYearMaxInput.value = String(maxValue);
+    } else {
+      minValue = maxValue;
+      birthYearMinInput.value = String(minValue);
+    }
+  }
+
+  if (preserveEntry !== birthYearMinEntry) birthYearMinEntry.value = formatHistoricalYear(minValue);
+  if (preserveEntry !== birthYearMaxEntry) birthYearMaxEntry.value = formatHistoricalYear(maxValue);
+  birthYearMinEntry.setAttribute("aria-invalid", "false");
+  birthYearMaxEntry.setAttribute("aria-invalid", "false");
+
+  updateBirthRangeTrack(minValue, maxValue);
+  updateSettingsNote();
+}
+
+function applyBirthYearEntry(entry, slider, changedSlider, { finalize = false } = {}) {
+  if (!activeBirthBounds) return;
+  const parsed = parseHistoricalYear(entry.value);
+  if (!Number.isFinite(parsed)) {
+    entry.setAttribute("aria-invalid", "true");
+    if (finalize) updateBirthRange(null);
+    return;
+  }
+
+  entry.setAttribute("aria-invalid", "false");
+  const clamped = Math.max(activeBirthBounds.min, Math.min(activeBirthBounds.max, parsed));
+  slider.value = String(clamped);
+  updateBirthRange(changedSlider, { preserveEntry: finalize ? null : entry });
+  if (finalize) entry.value = formatHistoricalYear(Number.parseInt(slider.value, 10));
+}
+
+async function loadBirthYearBounds(collection) {
+  const requestedSlug = collection.slug;
+  setBirthRangeLoading(true);
+  let bounds = birthBoundsCache.get(requestedSlug);
+  if (!bounds) {
+    const { data, error } = await supabase.rpc("get_life_map_birth_year_bounds", {
+      p_collection_slug: collection.slug
+    });
+    if (error) {
+      console.error(error);
+      if (selectedCollectionInput.value === requestedSlug) {
+        settingsNote.textContent = "Birth-year filtering is unavailable. Run the V42 Supabase migration before publishing this frontend.";
+      }
+      return;
+    }
+    bounds = {
+      min: Number(data?.min_birth_year),
+      max: Number(data?.max_birth_year)
+    };
+    if (!Number.isFinite(bounds.min) || !Number.isFinite(bounds.max)) {
+      settingsNote.textContent = "This collection does not yet contain people with usable birth years.";
+      return;
+    }
+    birthBoundsCache.set(requestedSlug, bounds);
+  }
+
+  if (selectedCollectionInput.value !== requestedSlug) return;
+  activeBirthBounds = bounds;
+  birthYearMinInput.min = String(bounds.min);
+  birthYearMinInput.max = String(bounds.max);
+  birthYearMaxInput.min = String(bounds.min);
+  birthYearMaxInput.max = String(bounds.max);
+  birthYearMinInput.value = String(bounds.min);
+  birthYearMaxInput.value = String(bounds.max);
+  setBirthRangeLoading(false);
+  updateBirthRange();
+}
 
 function openGameSettings(collection) {
   selectedCollectionInput.value = collection.slug;
@@ -24,9 +155,16 @@ function openGameSettings(collection) {
   timedInput.checked = true;
   showPlacesInput.checked = false;
   roundsInput.value = String(collection.default_rounds || 5);
+  includeAllInput.checked = false;
+  roundsInput.disabled = false;
   difficultyInput.value = "all";
+  activeBirthBounds = null;
   updateSettingsNote();
   settingsDialog.showModal();
+  loadBirthYearBounds(collection).catch(error => {
+    console.error(error);
+    settingsNote.textContent = "The birth-year range could not be loaded.";
+  });
 }
 function closeGameSettings() { if (settingsDialog.open) settingsDialog.close(); }
 function makeCollectionCard(collection) {
@@ -89,27 +227,68 @@ function difficultyLabel() {
     ? "all difficulties"
     : `difficulty ${difficulty}`;
 }
+function selectedBirthRange() {
+  if (!activeBirthBounds) return null;
+  return {
+    min: Number.parseInt(birthYearMinInput.value, 10),
+    max: Number.parseInt(birthYearMaxInput.value, 10)
+  };
+}
+function birthRangeLabel() {
+  const range = selectedBirthRange();
+  if (!range) return "birth years loading";
+  return `born ${formatHistoricalYear(range.min)}–${formatHistoricalYear(range.max)}`;
+}
+function roundsLabel() {
+  return includeAllInput.checked ? "all matching people" : `${roundCount()} rounds`;
+}
 function updateSettingsNote() {
   const rounds = roundCount();
-  roundsInput.value = String(rounds);
+  if (!includeAllInput.checked) roundsInput.value = String(rounds);
+  roundsInput.disabled = includeAllInput.checked;
   settingsNote.textContent = timedInput.checked
-    ? `${rounds} rounds · ${difficultyLabel()} · three-second preview · 20 seconds to answer · server-validated points.`
-    : `${rounds} rounds · ${difficultyLabel()} · no timer · the result is shown as correct answers.`;
+    ? `${roundsLabel()} · ${difficultyLabel()} · ${birthRangeLabel()} · three-second preview · 20 seconds to answer.`
+    : `${roundsLabel()} · ${difficultyLabel()} · ${birthRangeLabel()} · no timer · the result is shown as correct answers.`;
 }
 settingsForm.addEventListener("submit", event => {
   event.preventDefault();
+  const birthRange = selectedBirthRange();
+  if (!birthRange) return;
   const params = new URLSearchParams({
     collection: selectedCollectionInput.value,
     timed: timedInput.checked ? "1" : "0",
     showPlaces: showPlacesInput.checked ? "1" : "0",
     rounds: String(roundCount()),
-    difficulty: selectedDifficulty() === null ? "all" : String(selectedDifficulty())
+    includeAll: includeAllInput.checked ? "1" : "0",
+    difficulty: selectedDifficulty() === null ? "all" : String(selectedDifficulty()),
+    birthFrom: String(birthRange.min),
+    birthTo: String(birthRange.max)
   });
   location.href = `play.html?${params}`;
 });
 timedInput.addEventListener("change", updateSettingsNote);
 roundsInput.addEventListener("input", updateSettingsNote);
+includeAllInput.addEventListener("change", updateSettingsNote);
 difficultyInput.addEventListener("change", updateSettingsNote);
+birthYearMinInput.addEventListener("input", () => updateBirthRange(birthYearMinInput));
+birthYearMaxInput.addEventListener("input", () => updateBirthRange(birthYearMaxInput));
+birthYearMinEntry.addEventListener("input", () => applyBirthYearEntry(birthYearMinEntry, birthYearMinInput, birthYearMinInput));
+birthYearMaxEntry.addEventListener("input", () => applyBirthYearEntry(birthYearMaxEntry, birthYearMaxInput, birthYearMaxInput));
+birthYearMinEntry.addEventListener("change", () => applyBirthYearEntry(birthYearMinEntry, birthYearMinInput, birthYearMinInput, { finalize: true }));
+birthYearMaxEntry.addEventListener("change", () => applyBirthYearEntry(birthYearMaxEntry, birthYearMaxInput, birthYearMaxInput, { finalize: true }));
+birthYearMinEntry.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); birthYearMinEntry.blur(); } });
+birthYearMaxEntry.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); birthYearMaxEntry.blur(); } });
+if (typeof ResizeObserver !== "undefined") {
+  new ResizeObserver(() => {
+    const range = selectedBirthRange();
+    if (range) updateBirthRangeTrack(range.min, range.max);
+  }).observe(birthYearDualRange);
+} else {
+  window.addEventListener("resize", () => {
+    const range = selectedBirthRange();
+    if (range) updateBirthRangeTrack(range.min, range.max);
+  });
+}
 closeSettingsButton.addEventListener("click", closeGameSettings);
 cancelSettingsButton.addEventListener("click", closeGameSettings);
 
