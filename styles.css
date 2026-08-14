@@ -3117,3 +3117,16 @@ a.secondary-button:focus-visible {
 .site-page .collection-card .collection-card-footer > span {
   color: #5b7479;
 }
+
+
+/* V41 — white homepage land masses and dark overscroll canvas. */
+html {
+  min-height: 100%;
+  background: #224248;
+  overscroll-behavior-y: none;
+}
+
+body {
+  min-height: 100vh;
+  overscroll-behavior-y: none;
+}
