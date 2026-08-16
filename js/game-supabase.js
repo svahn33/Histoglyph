@@ -54,6 +54,9 @@ const guessButton = el("guess-button");
 const feedbackElement = el("feedback");
 const nextButton = el("next-button");
 const revealButton = el("reveal-button");
+const hintButton = el("hint-button");
+const hintPanel = el("hint-panel");
+const hintText = el("hint-text");
 const newGameButton = el("new-game-button");
 const dataWarning = el("data-warning");
 const collectionTitle = el("collection-title");
@@ -68,6 +71,7 @@ const gameSummaryMainDetail = el("game-summary-main-detail");
 const gameSummaryCorrect = el("game-summary-correct");
 const gameSummaryAccuracy = el("game-summary-accuracy");
 const gameSummaryMode = el("game-summary-mode");
+const gameSummaryHints = el("game-summary-hints");
 const playAgainButton = el("play-again-button");
 
 const supabase = requireSupabase();
@@ -79,6 +83,8 @@ let currentRound = 1;
 let currentClue = null;
 let score = 0;
 let correctAnswers = 0;
+let hintsUsed = 0;
+let currentRoundHintUsed = false;
 let roundFinished = true;
 let gameFinished = false;
 let roundStartedAt = 0;
@@ -102,11 +108,13 @@ function setControls(enabled) {
   guessInput.disabled = !enabled;
   guessButton.disabled = !enabled;
   revealButton.disabled = !enabled;
+  hintButton.disabled = !enabled || currentRoundHintUsed;
 }
 function enableCountdownTyping() {
   guessInput.disabled = false;
   guessButton.disabled = true;
   revealButton.disabled = true;
+  hintButton.disabled = true;
   guessInput.focus();
 }
 function updateTimer(elapsed) {
@@ -205,6 +213,10 @@ async function renderClue(clue, revealNames = false, result = null) {
 }
 function prepareRound() {
   roundFinished = true;
+  currentRoundHintUsed = false;
+  hintPanel.hidden = true;
+  hintText.textContent = "";
+  hintButton.textContent = "Hint";
   nextButton.textContent = "Next person";
   gameFinished = false;
   stopTimer();
@@ -364,6 +376,7 @@ async function startNewGame() {
   currentRound = 1;
   score = 0;
   correctAnswers = 0;
+  hintsUsed = 0;
   scoreElement.textContent = "0";
   collectionTitle.textContent = data.collection_title;
   collectionDescription.textContent = data.collection_description;
@@ -393,6 +406,40 @@ async function submitGuess() {
   }
   await finishRound(data);
 }
+async function useHint() {
+  if (roundFinished || !sessionId || currentRoundHintUsed) return;
+
+  hintButton.disabled = true;
+  const { data, error } = await supabase.rpc("get_life_map_hint", {
+    p_session_id: sessionId,
+    p_round_number: currentRound
+  });
+
+  if (error) {
+    hintButton.disabled = false;
+    setFeedback(error?.message || "The hint could not be loaded. Please try again.", "incorrect");
+    return;
+  }
+
+  const occupations = Array.isArray(data?.occupations)
+    ? data.occupations.map(formatOccupationTag).filter(Boolean).slice(0, 3)
+    : [];
+
+  if (!data?.available || occupations.length === 0) {
+    hintText.textContent = "No occupation hint is available for this person.";
+    hintPanel.hidden = false;
+    hintButton.disabled = false;
+    return;
+  }
+
+  currentRoundHintUsed = true;
+  if (data?.counted) hintsUsed += 1;
+  hintText.textContent = occupations.join(" · ");
+  hintPanel.hidden = false;
+  hintButton.textContent = "Hint used";
+  hintButton.disabled = true;
+}
+
 async function revealAnswer() {
   if (roundFinished || !sessionId) return;
   setControls(false);
@@ -417,16 +464,27 @@ function hideGameSummary() {
   document.body.classList.remove("game-summary-open");
 }
 
-function showGameOver() {
+async function showGameOver() {
   gameFinished = true;
   nextButton.disabled = true;
   resultOverlay.hidden = true;
 
   const accuracy = roundCount > 0 ? Math.round((correctAnswers / roundCount) * 100) : 0;
+
+  // Prefer the server-side hint count so the summary remains correct even if
+  // a round hint request was retried. Fall back to the local count if needed.
+  const { data: summaryData, error: summaryError } = await supabase.rpc("get_life_map_summary", {
+    p_session_id: sessionId
+  });
+  if (!summaryError && summaryData && Number.isFinite(Number(summaryData.hints_used))) {
+    hintsUsed = Number(summaryData.hints_used);
+  }
+
   gameSummaryCollection.textContent = `${collectionTitle.textContent} · ${roundCount} ${roundCount === 1 ? "round" : "rounds"} · ${birthYearRangeText()}`;
   gameSummaryMessage.textContent = endMessage(accuracy);
   gameSummaryCorrect.textContent = `${correctAnswers} / ${roundCount}`;
   gameSummaryAccuracy.textContent = `${accuracy}%`;
+  gameSummaryHints.textContent = String(hintsUsed);
   gameSummaryMode.textContent = timedMode ? "Timed" : "Untimed";
 
   if (timedMode) {
@@ -435,9 +493,9 @@ function showGameOver() {
     gameSummaryMainValue.textContent = score.toLocaleString("en-US");
     gameSummaryMainDetail.textContent = `out of ${maximumScore.toLocaleString("en-US")} possible points`;
   } else {
-    gameSummaryMainLabel.textContent = "Final result";
+    gameSummaryMainLabel.textContent = "Correct answers";
     gameSummaryMainValue.textContent = `${correctAnswers} / ${roundCount}`;
-    gameSummaryMainDetail.textContent = `${accuracy}% correct`;
+    gameSummaryMainDetail.textContent = "people identified";
   }
 
   gameSummaryModal.hidden = false;
@@ -474,6 +532,7 @@ guessForm.addEventListener("submit", event => {
   if (!countdownOverlay.hidden) return;
   submitGuess();
 });
+hintButton.addEventListener("click", useHint);
 revealButton.addEventListener("click", revealAnswer);
 nextButton.addEventListener("click", advanceAfterRound);
 newGameButton.addEventListener("click", startNewGame);
