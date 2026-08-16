@@ -3366,3 +3366,110 @@ body {
     justify-self: end;
   }
 }
+
+
+/* V45: align the visible track to the actual range-thumb travel area.
+   Native range controls keep a thumb-radius inset at their endpoints. By
+   giving the custom track the same inset, the line ends underneath each
+   thumb instead of protruding beyond it. */
+.birth-year-range-track {
+  left: calc(var(--range-thumb-size) / 2);
+  right: calc(var(--range-thumb-size) / 2);
+}
+
+.birth-year-dual-range input[type="range"] {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+
+/* V46: custom dual-slider geometry.
+   The native range controls now hold values only. The visible rail and handles
+   are positioned from the same coordinate system, so the rail can never extend
+   past the centres of the endpoint handles. */
+.birth-year-dual-range {
+  --range-thumb-size: 22px;
+  position: relative;
+  height: 36px;
+  border: 1px solid rgba(50, 94, 106, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.64);
+  touch-action: none;
+  user-select: none;
+}
+
+.birth-year-range-track {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--range-thumb-size) / 2);
+  right: calc(var(--range-thumb-size) / 2);
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(34, 66, 72, 0.18);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.birth-year-range-track span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--range-start-px, 0px);
+  width: var(--range-width-px, 0px);
+  border-radius: 999px;
+  background: #44A1A4;
+}
+
+.birth-year-range-thumb {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: calc(var(--range-thumb-size) / 2);
+  width: var(--range-thumb-size);
+  height: var(--range-thumb-size);
+  box-sizing: border-box;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #224248;
+  box-shadow: 0 2px 6px rgba(34, 66, 72, 0.3);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  outline: none;
+}
+
+.birth-year-range-thumb:active {
+  cursor: grabbing;
+}
+
+.birth-year-range-thumb:focus-visible {
+  box-shadow:
+    0 2px 6px rgba(34, 66, 72, 0.3),
+    0 0 0 4px rgba(255, 154, 0, 0.28);
+}
+
+.birth-year-dual-range.is-disabled .birth-year-range-thumb {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+/* State proxies only: browser-native range geometry is intentionally removed
+   from the visible UI to avoid Safari/Chrome thumb inset differences. */
+.birth-year-dual-range .birth-year-range-proxy {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}

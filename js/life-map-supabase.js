@@ -18,6 +18,9 @@ const birthYearMaxInput = document.querySelector("#setting-birth-year-max");
 const birthYearMinEntry = document.querySelector("#birth-year-min-entry");
 const birthYearMaxEntry = document.querySelector("#birth-year-max-entry");
 const birthYearDualRange = document.querySelector("#birth-year-dual-range");
+const birthYearRangeTrack = birthYearDualRange?.querySelector(".birth-year-range-track");
+const birthYearMinThumb = document.querySelector("#birth-year-min-thumb");
+const birthYearMaxThumb = document.querySelector("#birth-year-max-thumb");
 const settingsNote = document.querySelector("#game-settings-note");
 const startSettingsButton = document.querySelector("#start-game-settings");
 const closeSettingsButton = document.querySelector("#close-game-settings");
@@ -51,6 +54,9 @@ function setBirthRangeLoading(isLoading) {
   birthYearMaxInput.disabled = isLoading;
   birthYearMinEntry.disabled = isLoading;
   birthYearMaxEntry.disabled = isLoading;
+  birthYearMinThumb.tabIndex = isLoading ? -1 : 0;
+  birthYearMaxThumb.tabIndex = isLoading ? -1 : 0;
+  birthYearDualRange.classList.toggle("is-disabled", isLoading);
   startSettingsButton.disabled = isLoading;
   if (isLoading) {
     birthYearMinEntry.value = "Loading…";
@@ -59,15 +65,28 @@ function setBirthRangeLoading(isLoading) {
 }
 
 function updateBirthRangeTrack(minValue, maxValue) {
-  if (!activeBirthBounds) return;
+  if (!activeBirthBounds || !birthYearRangeTrack) return;
   const span = Math.max(1, activeBirthBounds.max - activeBirthBounds.min);
   const minRatio = Math.max(0, Math.min(1, (minValue - activeBirthBounds.min) / span));
   const maxRatio = Math.max(0, Math.min(1, (maxValue - activeBirthBounds.min) / span));
-  const usableWidth = Math.max(0, birthYearDualRange.clientWidth);
-  const startPx = minRatio * usableWidth;
-  const widthPx = Math.max(0, (maxRatio - minRatio) * usableWidth);
+  const trackWidth = Math.max(0, birthYearRangeTrack.clientWidth);
+  const trackLeft = birthYearRangeTrack.offsetLeft;
+  const startPx = minRatio * trackWidth;
+  const widthPx = Math.max(0, (maxRatio - minRatio) * trackWidth);
+
   birthYearDualRange.style.setProperty("--range-start-px", `${startPx}px`);
   birthYearDualRange.style.setProperty("--range-width-px", `${widthPx}px`);
+  birthYearMinThumb.style.left = `${trackLeft + startPx}px`;
+  birthYearMaxThumb.style.left = `${trackLeft + maxRatio * trackWidth}px`;
+
+  birthYearMinThumb.setAttribute("aria-valuemin", String(activeBirthBounds.min));
+  birthYearMinThumb.setAttribute("aria-valuemax", String(maxValue));
+  birthYearMinThumb.setAttribute("aria-valuenow", String(minValue));
+  birthYearMinThumb.setAttribute("aria-valuetext", formatHistoricalYear(minValue));
+  birthYearMaxThumb.setAttribute("aria-valuemin", String(minValue));
+  birthYearMaxThumb.setAttribute("aria-valuemax", String(activeBirthBounds.max));
+  birthYearMaxThumb.setAttribute("aria-valuenow", String(maxValue));
+  birthYearMaxThumb.setAttribute("aria-valuetext", formatHistoricalYear(maxValue));
 }
 
 function updateBirthRange(changedInput = null, { preserveEntry = null } = {}) {
@@ -250,6 +269,90 @@ function updateSettingsNote() {
     ? `${roundsLabel()} · ${difficultyLabel()} · ${birthRangeLabel()} · three-second preview · 20 seconds to answer.`
     : `${roundsLabel()} · ${difficultyLabel()} · ${birthRangeLabel()} · no timer · the result is shown as correct answers.`;
 }
+let draggedBirthThumb = null;
+let draggedBirthPointerId = null;
+
+function valueFromBirthRangePointer(clientX) {
+  if (!activeBirthBounds || !birthYearRangeTrack) return null;
+  const rect = birthYearRangeTrack.getBoundingClientRect();
+  if (rect.width <= 0) return null;
+  const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  const raw = activeBirthBounds.min + ratio * (activeBirthBounds.max - activeBirthBounds.min);
+  return Math.round(raw);
+}
+
+function setBirthSliderValue(slider, value) {
+  if (!activeBirthBounds) return;
+  const other = slider === birthYearMinInput ? birthYearMaxInput : birthYearMinInput;
+  let next = Math.max(activeBirthBounds.min, Math.min(activeBirthBounds.max, value));
+  if (slider === birthYearMinInput) next = Math.min(next, Number.parseInt(other.value, 10));
+  else next = Math.max(next, Number.parseInt(other.value, 10));
+  slider.value = String(next);
+  updateBirthRange(slider);
+}
+
+function chooseBirthThumb(event) {
+  const requested = event.target.closest?.("[data-range-thumb]")?.dataset.rangeThumb;
+  if (requested === "min") return birthYearMinInput;
+  if (requested === "max") return birthYearMaxInput;
+
+  const value = valueFromBirthRangePointer(event.clientX);
+  if (value === null) return null;
+  const minDistance = Math.abs(value - Number.parseInt(birthYearMinInput.value, 10));
+  const maxDistance = Math.abs(value - Number.parseInt(birthYearMaxInput.value, 10));
+  return minDistance <= maxDistance ? birthYearMinInput : birthYearMaxInput;
+}
+
+birthYearDualRange.addEventListener("pointerdown", event => {
+  if (!activeBirthBounds || birthYearMinInput.disabled || birthYearMaxInput.disabled) return;
+  const slider = chooseBirthThumb(event);
+  const value = valueFromBirthRangePointer(event.clientX);
+  if (!slider || value === null) return;
+  event.preventDefault();
+  draggedBirthThumb = slider;
+  draggedBirthPointerId = event.pointerId;
+  birthYearDualRange.setPointerCapture?.(event.pointerId);
+  setBirthSliderValue(slider, value);
+  (slider === birthYearMinInput ? birthYearMinThumb : birthYearMaxThumb).focus({ preventScroll: true });
+});
+
+birthYearDualRange.addEventListener("pointermove", event => {
+  if (!draggedBirthThumb || event.pointerId !== draggedBirthPointerId) return;
+  const value = valueFromBirthRangePointer(event.clientX);
+  if (value === null) return;
+  event.preventDefault();
+  setBirthSliderValue(draggedBirthThumb, value);
+});
+
+function finishBirthThumbDrag(event) {
+  if (event.pointerId !== draggedBirthPointerId) return;
+  if (birthYearDualRange.hasPointerCapture?.(event.pointerId)) birthYearDualRange.releasePointerCapture(event.pointerId);
+  draggedBirthThumb = null;
+  draggedBirthPointerId = null;
+}
+
+birthYearDualRange.addEventListener("pointerup", finishBirthThumbDrag);
+birthYearDualRange.addEventListener("pointercancel", finishBirthThumbDrag);
+
+function handleBirthThumbKeyboard(event, slider) {
+  if (!activeBirthBounds) return;
+  const current = Number.parseInt(slider.value, 10);
+  const pageStep = Math.max(10, Math.round((activeBirthBounds.max - activeBirthBounds.min) / 20));
+  let next = current;
+  if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = current - 1;
+  else if (event.key === "ArrowRight" || event.key === "ArrowUp") next = current + 1;
+  else if (event.key === "PageDown") next = current - pageStep;
+  else if (event.key === "PageUp") next = current + pageStep;
+  else if (event.key === "Home") next = activeBirthBounds.min;
+  else if (event.key === "End") next = activeBirthBounds.max;
+  else return;
+  event.preventDefault();
+  setBirthSliderValue(slider, next);
+}
+
+birthYearMinThumb.addEventListener("keydown", event => handleBirthThumbKeyboard(event, birthYearMinInput));
+birthYearMaxThumb.addEventListener("keydown", event => handleBirthThumbKeyboard(event, birthYearMaxInput));
+
 settingsForm.addEventListener("submit", event => {
   event.preventDefault();
   const birthRange = selectedBirthRange();
@@ -270,8 +373,6 @@ timedInput.addEventListener("change", updateSettingsNote);
 roundsInput.addEventListener("input", updateSettingsNote);
 includeAllInput.addEventListener("change", updateSettingsNote);
 difficultyInput.addEventListener("change", updateSettingsNote);
-birthYearMinInput.addEventListener("input", () => updateBirthRange(birthYearMinInput));
-birthYearMaxInput.addEventListener("input", () => updateBirthRange(birthYearMaxInput));
 birthYearMinEntry.addEventListener("input", () => applyBirthYearEntry(birthYearMinEntry, birthYearMinInput, birthYearMinInput));
 birthYearMaxEntry.addEventListener("input", () => applyBirthYearEntry(birthYearMaxEntry, birthYearMaxInput, birthYearMaxInput));
 birthYearMinEntry.addEventListener("change", () => applyBirthYearEntry(birthYearMinEntry, birthYearMinInput, birthYearMinInput, { finalize: true }));

@@ -125,10 +125,12 @@
               <span aria-hidden="true">–</span>
               <input id="birth-year-max-entry" class="birth-year-entry" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Latest birth year" value="Loading…" disabled>
             </div>
-            <div id="birth-year-dual-range" class="birth-year-dual-range">
+            <div id="birth-year-dual-range" class="birth-year-dual-range" aria-label="Birth year range">
               <div class="birth-year-range-track" aria-hidden="true"><span></span></div>
-              <input id="setting-birth-year-min" type="range" min="-500" max="2000" step="1" value="-500" aria-label="Earliest birth year" disabled>
-              <input id="setting-birth-year-max" type="range" min="-500" max="2000" step="1" value="2000" aria-label="Latest birth year" disabled>
+              <div id="birth-year-min-thumb" class="birth-year-range-thumb" data-range-thumb="min" role="slider" tabindex="0" aria-label="Earliest birth year" aria-valuemin="-500" aria-valuemax="2000" aria-valuenow="-500"></div>
+              <div id="birth-year-max-thumb" class="birth-year-range-thumb" data-range-thumb="max" role="slider" tabindex="0" aria-label="Latest birth year" aria-valuemin="-500" aria-valuemax="2000" aria-valuenow="2000"></div>
+              <input id="setting-birth-year-min" class="birth-year-range-proxy" type="range" min="-500" max="2000" step="1" value="-500" tabindex="-1" aria-hidden="true" disabled>
+              <input id="setting-birth-year-max" class="birth-year-range-proxy" type="range" min="-500" max="2000" step="1" value="2000" tabindex="-1" aria-hidden="true" disabled>
             </div>
           </div>
         </div>
