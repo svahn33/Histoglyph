@@ -170,8 +170,8 @@ async function loadBirthYearBounds(collection) {
 function openGameSettings(collection) {
   selectedCollectionInput.value = collection.slug;
   settingsTitle.textContent = collection.title;
-  settingsDescription.textContent = collection.description;
-  timedInput.checked = true;
+  settingsDescription.textContent = "Choose your settings, then start the game.";
+  timedInput.checked = false;
   showPlacesInput.checked = false;
   roundsInput.value = String(collection.default_rounds || 5);
   includeAllInput.checked = false;
@@ -259,15 +259,15 @@ function birthRangeLabel() {
   return `born ${formatHistoricalYear(range.min)}–${formatHistoricalYear(range.max)}`;
 }
 function roundsLabel() {
-  return includeAllInput.checked ? "all matching people" : `${roundCount()} rounds`;
+  if (includeAllInput.checked) return "all matching people";
+  if (String(roundsInput.value).trim() === "") return "enter number of rounds";
+  return `${roundCount()} rounds`;
 }
 function updateSettingsNote() {
-  const rounds = roundCount();
-  if (!includeAllInput.checked) roundsInput.value = String(rounds);
   roundsInput.disabled = includeAllInput.checked;
-  settingsNote.textContent = timedInput.checked
-    ? `${roundsLabel()} · ${difficultyLabel()} · ${birthRangeLabel()} · three-second preview · 20 seconds to answer.`
-    : `${roundsLabel()} · ${difficultyLabel()} · ${birthRangeLabel()} · no timer · the result is shown as correct answers.`;
+  const timing = timedInput.checked ? "Timed" : "Untimed";
+  const places = showPlacesInput.checked ? "place names shown" : "place names hidden";
+  settingsNote.textContent = `Current settings: ${timing} · ${roundsLabel()} · ${difficultyLabel()} · ${birthRangeLabel()} · ${places}.`;
 }
 let draggedBirthThumb = null;
 let draggedBirthPointerId = null;
@@ -370,7 +370,14 @@ settingsForm.addEventListener("submit", event => {
   location.href = `play.html?${params}`;
 });
 timedInput.addEventListener("change", updateSettingsNote);
+showPlacesInput.addEventListener("change", updateSettingsNote);
 roundsInput.addEventListener("input", updateSettingsNote);
+roundsInput.addEventListener("blur", () => {
+  if (!includeAllInput.checked && String(roundsInput.value).trim() !== "") {
+    roundsInput.value = String(roundCount());
+  }
+  updateSettingsNote();
+});
 includeAllInput.addEventListener("change", updateSettingsNote);
 difficultyInput.addEventListener("change", updateSettingsNote);
 birthYearMinEntry.addEventListener("input", () => applyBirthYearEntry(birthYearMinEntry, birthYearMinInput, birthYearMinInput));

@@ -3513,3 +3513,28 @@ body {
 @media (max-width: 430px) {
   .hint-panel { align-items: flex-start; flex-direction: column; gap: 7px; }
 }
+
+
+/* V49: settings usability and consistent footer presentation. */
+.game-setting-option--select { cursor: default; }
+.game-setting-select {
+  width: 230px;
+  min-width: 230px;
+  max-width: 100%;
+  padding-right: 38px;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+.game-setting-number { caret-color: #224248; }
+.site-footer { margin-top: 28px; }
+.map-footer { justify-content: flex-start; }
+@media (max-width: 640px) {
+  .game-setting-option--select {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .game-setting-select {
+    width: 100%;
+    min-width: 0;
+  }
+}

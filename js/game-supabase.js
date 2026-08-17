@@ -9,7 +9,7 @@ const PORTRAIT_BUCKET = "person-images";
 
 const parameters = new URLSearchParams(window.location.search);
 const collectionSlug = parameters.get("collection") || "world-history";
-const timedMode = parameters.get("timed") !== "0";
+const timedMode = parameters.get("timed") === "1";
 const showPlacesInitially = parameters.get("showPlaces") === "1";
 const requestedRounds = Math.max(1, Math.min(100, Number.parseInt(parameters.get("rounds"), 10) || 5));
 const includeAllPeople = parameters.get("includeAll") === "1";
