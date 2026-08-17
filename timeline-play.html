@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="assets/Histoglyph_image.png">
+  <link rel="apple-touch-icon" href="assets/Histoglyph_image.png">
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="Play Histoglyph Timeline and place historical figures in chronological order.">
+  <title>Timeline — Histoglyph</title>
+  <link rel="stylesheet" href="styles.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9513558430855383" crossorigin="anonymous"></script>
+</head>
+<body>
+  <main class="game-shell timeline-game-shell">
+    <header class="game-header game-header--play timeline-game-header">
+      <div>
+        <a class="play-brand" href="/"><img class="brand-logo" src="assets/Histoglyph_image.png" alt="" aria-hidden="true"><span>Histoglyph</span></a>
+        <nav class="breadcrumbs breadcrumbs--play" aria-label="Breadcrumb">
+          <a href="/">Home</a><span>›</span><a href="timeline.html">Timeline</a><span>›</span><span id="timeline-collection-breadcrumb">Collection</span>
+        </nav>
+        <h1 id="timeline-collection-title">Timeline</h1>
+        <p class="intro">Place the current person in the correct chronological position.</p>
+        <div class="play-settings-summary" aria-label="Selected game settings">
+          <span id="timeline-people-setting-summary">10 people</span>
+          <span id="timeline-difficulty-setting-summary">All difficulties</span>
+          <span id="timeline-birth-year-setting-summary">All birth years</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="secondary-button link-button" href="timeline.html">Change collection</a>
+        <button id="timeline-restart-button" class="secondary-button" type="button">Restart</button>
+      </div>
+    </header>
+
+    <section class="timeline-status-card" aria-label="Timeline game status">
+      <div>
+        <span>Placement</span>
+        <strong><span id="timeline-round-number">1</span>/<span id="timeline-round-total">9</span></strong>
+      </div>
+      <div>
+        <span>Mistakes</span>
+        <strong id="timeline-mistakes">0</strong>
+      </div>
+      <div>
+        <span>People on timeline</span>
+        <strong id="timeline-placed-count">1</strong>
+      </div>
+    </section>
+
+    <section class="timeline-board-card timeline-board-card--primary" aria-label="Historical timeline">
+      <div class="timeline-board-heading">
+        <div>
+          <p class="eyebrow">Your timeline</p>
+          <h2>Earlier <span aria-hidden="true">→</span> Later</h2>
+        </div>
+        <p id="timeline-feedback" class="timeline-feedback" aria-live="polite"></p>
+      </div>
+      <div id="timeline-board-scroll" class="timeline-board-scroll">
+        <div id="timeline-board" class="timeline-board"></div>
+      </div>
+    </section>
+
+    <section class="timeline-challenge-layout timeline-challenge-layout--below">
+      <article id="timeline-current-card" class="timeline-person-card timeline-person-card--compact" draggable="true">
+        <div class="timeline-person-card__portrait-wrap">
+          <div id="timeline-current-placeholder" class="timeline-person-card__placeholder" aria-hidden="true">?</div>
+          <img id="timeline-current-image" class="timeline-person-card__portrait" alt="" hidden>
+        </div>
+        <div class="timeline-person-card__body">
+          <span class="timeline-person-card__kicker">Place this person</span>
+          <h2 id="timeline-current-name">Loading…</h2>
+          <p class="timeline-person-card__birthplace"><span>Born in</span><strong id="timeline-current-birthplace">—</strong></p>
+          <small id="timeline-current-credit" class="timeline-person-card__credit" hidden></small>
+        </div>
+      </article>
+
+      <div class="timeline-play-instructions">
+        <p><strong>Place the person</strong> where you think they belong. Drag the card to a slot, or tap <strong>Place here</strong>. Their birth year appears on the timeline after a correct placement.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand brand--small" href="/"><img class="brand-logo" src="assets/Histoglyph_image.png" alt="" aria-hidden="true"><span>Histoglyph</span></a>
+    <p>© 2026 Histoglyph. All Rights Reserved. · <a href="about.html">About us</a> · <a href="privacy.html">Privacy</a></p>
+  </footer>
+
+  <div id="timeline-summary-modal" class="game-summary-modal" hidden role="dialog" aria-modal="true" aria-labelledby="timeline-summary-title">
+    <div class="game-summary-backdrop" aria-hidden="true"></div>
+    <section class="game-summary-card">
+      <div class="game-summary-confetti" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span class="game-summary-kicker">Timeline complete</span>
+      <h2 id="timeline-summary-title">History in order!</h2>
+      <p id="timeline-summary-collection" class="game-summary-collection">Collection</p>
+      <p class="game-summary-message">You built the full timeline from earliest to latest.</p>
+
+      <div class="game-summary-main">
+        <span>People placed</span>
+        <strong id="timeline-summary-placed">0</strong>
+        <small>including the starting person</small>
+      </div>
+
+      <div class="game-summary-stats timeline-summary-stats" aria-label="Timeline summary">
+        <div>
+          <span>First try</span>
+          <strong id="timeline-summary-first-try">0 / 0</strong>
+        </div>
+        <div>
+          <span>First-try accuracy</span>
+          <strong id="timeline-summary-accuracy">0%</strong>
+        </div>
+        <div>
+          <span>Mistakes</span>
+          <strong id="timeline-summary-mistakes">0</strong>
+        </div>
+      </div>
+
+      <div class="game-summary-actions">
+        <button id="timeline-play-again-button" class="primary-button game-summary-play-again" type="button">Play again</button>
+        <a class="secondary-button link-button" href="timeline.html">Change collection</a>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="js/timeline-game-supabase.js"></script>
+</body>
+</html>

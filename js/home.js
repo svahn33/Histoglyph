@@ -32,7 +32,7 @@ function createModeCard(mode) {
     const link = document.createElement("a");
     link.className = "primary-button mode-card-action";
     link.href = mode.href;
-    link.textContent = "Choose category";
+    link.textContent = "Choose collection";
     footer.append(link);
     article.classList.add("mode-card--clickable");
     article.addEventListener("click", event => {
