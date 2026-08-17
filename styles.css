@@ -3538,3 +3538,600 @@ body {
     min-width: 0;
   }
 }
+
+/* V50 — Timeline game mode */
+.timeline-mode-hero {
+  position: relative;
+  overflow: hidden;
+}
+.timeline-mode-hero::after {
+  content: "";
+  position: absolute;
+  right: -90px;
+  bottom: -105px;
+  width: 310px;
+  height: 310px;
+  border: 2px solid rgba(255, 154, 0, 0.18);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.timeline-game-shell {
+  width: min(1380px, calc(100% - 32px));
+}
+.timeline-game-header {
+  margin-bottom: 18px;
+}
+
+.timeline-status-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 34px rgba(10, 31, 35, 0.18);
+}
+.timeline-status-card > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 18px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(34, 66, 72, 0.76);
+}
+.timeline-status-card span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.timeline-status-card strong {
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.timeline-challenge-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 330px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 52px);
+  margin-bottom: 22px;
+  padding: clamp(20px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(50, 94, 106, 0.96), rgba(34, 66, 72, 0.96));
+  box-shadow: 0 18px 44px rgba(10, 31, 35, 0.24);
+}
+
+.timeline-person-card {
+  width: min(100%, 320px);
+  overflow: hidden;
+  border: 1px solid rgba(34, 66, 72, 0.2);
+  border-radius: 20px;
+  color: var(--text);
+  background: #f8fbfb;
+  box-shadow: 0 20px 45px rgba(7, 28, 33, 0.28);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+.timeline-person-card:active { cursor: grabbing; }
+.timeline-person-card.is-dragging {
+  opacity: 0.72;
+  transform: rotate(-1.5deg) scale(0.985);
+}
+.timeline-person-card.is-disabled { cursor: wait; }
+.timeline-person-card.is-wrong { animation: timeline-card-shake 0.34s ease; }
+.timeline-person-card.is-correct {
+  box-shadow: 0 0 0 4px rgba(47, 157, 91, 0.25), 0 20px 45px rgba(7, 28, 33, 0.28);
+}
+@keyframes timeline-card-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  55% { transform: translateX(7px); }
+  78% { transform: translateX(-4px); }
+}
+.timeline-person-card__portrait-wrap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #dce8e9;
+}
+.timeline-person-card__portrait,
+.timeline-person-card__placeholder {
+  width: 100%;
+  height: 100%;
+}
+.timeline-person-card__portrait {
+  display: block;
+  object-fit: cover;
+  object-position: center 20%;
+}
+.timeline-person-card__placeholder {
+  display: grid;
+  place-items: center;
+  color: rgba(34, 66, 72, 0.5);
+  background: linear-gradient(145deg, #dce9ea, #c7dcde);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3rem;
+  font-weight: 800;
+}
+.timeline-person-card__body {
+  padding: 18px 20px 19px;
+}
+.timeline-person-card__kicker {
+  color: #5b7479;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.timeline-person-card h2 {
+  margin: 5px 0 14px;
+  color: #224248;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.55rem, 3vw, 2rem);
+  line-height: 1.02;
+}
+.timeline-person-card__birthplace,
+.timeline-person-card__year {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  margin: 7px 0 0;
+}
+.timeline-person-card__birthplace span,
+.timeline-person-card__year span {
+  color: #6b8084;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.timeline-person-card__birthplace strong,
+.timeline-person-card__year strong {
+  min-width: 0;
+  color: #224248;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+.timeline-person-card__year strong {
+  color: #325E6A;
+  font-size: 1.08rem;
+  letter-spacing: 0.03em;
+}
+.timeline-person-card.is-correct .timeline-person-card__year strong { color: var(--birth); }
+.timeline-person-card__credit {
+  display: block;
+  margin-top: 13px;
+  color: #70858a;
+  font-size: 0.62rem;
+  line-height: 1.3;
+}
+.timeline-person-card__credit a { text-decoration: underline; }
+
+.timeline-play-instructions {
+  max-width: 560px;
+  color: rgba(245, 251, 251, 0.82);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+.timeline-play-instructions strong { color: #ffffff; }
+
+.timeline-board-card {
+  overflow: hidden;
+  border: 1px solid rgba(34, 66, 72, 0.16);
+  border-radius: 24px;
+  color: var(--text);
+  background: #f8fbfb;
+  box-shadow: 0 18px 44px rgba(10, 31, 35, 0.2);
+}
+.timeline-board-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #d6e2e4;
+}
+.timeline-board-heading .eyebrow { color: #325E6A; }
+.timeline-board-heading h2 {
+  margin: 0;
+  color: #224248;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+.timeline-feedback {
+  min-height: 1.3em;
+  margin: 0;
+  color: #5b7479;
+  font-size: 0.88rem;
+  font-weight: 750;
+  text-align: right;
+}
+.timeline-feedback.is-wrong { color: var(--death); }
+.timeline-feedback.is-correct { color: var(--birth); }
+
+.timeline-board-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 28px 24px 34px;
+  scrollbar-color: #8ea9ae transparent;
+}
+.timeline-board {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: max-content;
+  min-width: 100%;
+  min-height: 190px;
+  padding: 28px 8px;
+}
+.timeline-board::before {
+  content: "";
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  top: 50%;
+  height: 4px;
+  border-radius: 999px;
+  background: #325E6A;
+  transform: translateY(-50%);
+}
+.timeline-board::after {
+  content: "";
+  position: absolute;
+  right: 23px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-top: 4px solid #325E6A;
+  border-right: 4px solid #325E6A;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.timeline-placed-person {
+  position: relative;
+  z-index: 2;
+  width: 142px;
+  flex: 0 0 142px;
+  overflow: hidden;
+  border: 1px solid #c8d9dc;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(34, 66, 72, 0.14);
+}
+.timeline-placed-person__portrait-wrap {
+  position: relative;
+  height: 92px;
+  overflow: hidden;
+  background: #dce8e9;
+}
+.timeline-placed-person__portrait,
+.timeline-placed-person__placeholder {
+  width: 100%;
+  height: 100%;
+}
+.timeline-placed-person__portrait { object-fit: cover; object-position: center 20%; }
+.timeline-placed-person__placeholder {
+  display: grid;
+  place-items: center;
+  color: rgba(34, 66, 72, 0.45);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.timeline-placed-person__body {
+  display: grid;
+  gap: 4px;
+  padding: 10px 10px 11px;
+  text-align: center;
+}
+.timeline-placed-person__body strong {
+  overflow: hidden;
+  color: #224248;
+  font-size: 0.76rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.timeline-placed-person__body span {
+  color: #325E6A;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.timeline-drop-slot {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  width: 70px;
+  height: 116px;
+  flex: 0 0 70px;
+  margin: 0 6px;
+  padding: 8px 4px;
+  border: 2px dashed #9bb4b8;
+  border-radius: 14px;
+  color: #526f75;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: none;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.timeline-drop-slot span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #224248;
+  background: var(--highlight);
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.timeline-drop-slot small {
+  max-width: 58px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.12;
+  text-align: center;
+}
+.timeline-drop-slot:hover:not(:disabled),
+.timeline-drop-slot.is-drag-over {
+  border-color: var(--highlight);
+  color: #224248;
+  background: #fff3df;
+  transform: translateY(-3px);
+}
+.timeline-drop-slot:focus-visible {
+  outline: 3px solid rgba(255, 154, 0, 0.35);
+  outline-offset: 3px;
+}
+
+.timeline-summary-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 800px) {
+  .timeline-status-card {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .timeline-status-card > div {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 11px 7px;
+    text-align: center;
+  }
+  .timeline-status-card span { font-size: 0.58rem; }
+  .timeline-challenge-layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .timeline-play-instructions {
+    max-width: 480px;
+    font-size: 0.92rem;
+    text-align: center;
+  }
+  .timeline-board-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .timeline-feedback { text-align: left; }
+}
+
+@media (max-width: 560px) {
+  .timeline-game-shell {
+    width: min(100% - 18px, 1380px);
+    margin-top: 18px;
+  }
+  .timeline-challenge-layout {
+    padding: 15px;
+    border-radius: 18px;
+  }
+  .timeline-person-card {
+    width: min(100%, 280px);
+  }
+  .timeline-person-card__body { padding: 15px 16px 16px; }
+  .timeline-board-card { border-radius: 18px; }
+  .timeline-board-heading { padding: 16px 16px 12px; }
+  .timeline-board-scroll { padding: 20px 10px 26px; }
+  .timeline-placed-person {
+    width: 118px;
+    flex-basis: 118px;
+  }
+  .timeline-placed-person__portrait-wrap { height: 76px; }
+  .timeline-drop-slot {
+    width: 58px;
+    flex-basis: 58px;
+    height: 102px;
+    margin: 0 4px;
+  }
+  .timeline-drop-slot small {
+    max-width: 50px;
+    font-size: 0.56rem;
+  }
+  .timeline-summary-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* V51 — Timeline puts the timeline first and uses a smaller active card. */
+.timeline-board-card--primary {
+  margin-bottom: 20px;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 22px 54px rgba(7, 28, 33, 0.27);
+}
+
+.timeline-board-card--primary .timeline-board-scroll {
+  padding-top: 34px;
+  padding-bottom: 40px;
+}
+
+.timeline-board-card--primary .timeline-board {
+  min-height: 235px;
+}
+
+.timeline-challenge-layout--below {
+  grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 38px);
+  margin-bottom: 22px;
+  padding: 18px 22px;
+  background: rgba(50, 94, 106, 0.72);
+  box-shadow: 0 12px 30px rgba(10, 31, 35, 0.18);
+}
+
+.timeline-person-card--compact {
+  width: min(100%, 230px);
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(7, 28, 33, 0.23);
+}
+
+.timeline-person-card--compact .timeline-person-card__portrait-wrap {
+  aspect-ratio: 16 / 10;
+}
+
+.timeline-person-card--compact .timeline-person-card__body {
+  padding: 13px 15px 14px;
+}
+
+.timeline-person-card--compact h2 {
+  margin: 4px 0 9px;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+}
+
+.timeline-person-card--compact .timeline-person-card__birthplace {
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 7px;
+  margin-top: 5px;
+}
+
+.timeline-person-card--compact .timeline-person-card__birthplace span {
+  font-size: 0.59rem;
+}
+
+.timeline-person-card--compact .timeline-person-card__birthplace strong {
+  font-size: 0.78rem;
+}
+
+.timeline-person-card--compact .timeline-person-card__credit {
+  margin-top: 8px;
+  font-size: 0.54rem;
+}
+
+/* Explicitly honour the hidden state even though the portrait classes define display. */
+.timeline-person-card__portrait[hidden],
+.timeline-person-card__placeholder[hidden],
+.timeline-placed-person__portrait[hidden],
+.timeline-placed-person__placeholder[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 800px) {
+  .timeline-board-card--primary .timeline-board {
+    min-height: 215px;
+  }
+
+  .timeline-challenge-layout--below {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 16px;
+  }
+
+  .timeline-person-card--compact {
+    width: min(100%, 220px);
+  }
+}
+
+@media (max-width: 560px) {
+  .timeline-board-card--primary {
+    margin-bottom: 14px;
+  }
+
+  .timeline-board-card--primary .timeline-board-scroll {
+    padding-top: 24px;
+    padding-bottom: 28px;
+  }
+
+  .timeline-board-card--primary .timeline-board {
+    min-height: 190px;
+  }
+
+  .timeline-challenge-layout--below {
+    margin-bottom: 16px;
+    padding: 13px;
+  }
+
+  .timeline-person-card--compact {
+    width: min(100%, 205px);
+  }
+
+  .timeline-person-card--compact .timeline-person-card__body {
+    padding: 11px 12px 12px;
+  }
+
+  .timeline-person-card--compact h2 {
+    font-size: 1.15rem;
+  }
+}
+
+
+/* V52 — Timeline placement fix + portrait proportions aligned with Life & Death Map. */
+.timeline-person-card--compact {
+  width: min(100%, 190px);
+}
+
+.timeline-person-card--compact .timeline-person-card__portrait-wrap {
+  aspect-ratio: 4 / 5;
+}
+
+.timeline-person-card--compact .timeline-person-card__portrait {
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.timeline-placed-person {
+  width: 126px;
+  flex-basis: 126px;
+}
+
+.timeline-placed-person__portrait-wrap {
+  height: auto;
+  aspect-ratio: 4 / 5;
+}
+
+.timeline-placed-person__portrait {
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+@media (max-width: 800px) {
+  .timeline-person-card--compact {
+    width: min(100%, 182px);
+  }
+
+  .timeline-placed-person {
+    width: 118px;
+    flex-basis: 118px;
+  }
+}
+
+@media (max-width: 560px) {
+  .timeline-person-card--compact {
+    width: min(100%, 172px);
+  }
+
+  .timeline-placed-person {
+    width: 110px;
+    flex-basis: 110px;
+  }
+}

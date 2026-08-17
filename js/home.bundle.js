@@ -18,9 +18,10 @@ const GAME_MODES = [
     title: "Timeline",
     shortTitle: "Timeline",
     description:
-      "Place events and people in the correct chronological order.",
-    status: "coming-soon",
-    eyebrow: "Coming later"
+      "Place historical figures in chronological order as the timeline grows with every correct answer.",
+    status: "available",
+    href: "timeline.html",
+    eyebrow: "Chronology challenge"
   },
   {
     id: "portrait",
@@ -190,7 +191,7 @@ function createModeCard(mode) {
     const link = document.createElement("a");
     link.className = "primary-button mode-card-action";
     link.href = mode.href;
-    link.textContent = "Choose category";
+    link.textContent = "Choose collection";
     footer.append(link);
     article.classList.add("mode-card--clickable");
     article.addEventListener("click", event => {
