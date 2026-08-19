@@ -24,9 +24,10 @@ export const GAME_MODES = [
     title: "Portrait",
     shortTitle: "Portrait",
     description:
-      "Recognise historical figures from portraits, objects and visual details.",
-    status: "coming-soon",
-    eyebrow: "Coming later"
+      "Identify historical figures from their portraits, with optional clues when you need them.",
+    status: "available",
+    href: "portrait.html",
+    eyebrow: "Portrait challenge"
   }
 ];
 

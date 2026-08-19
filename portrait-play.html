@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="assets/Histoglyph_image.png">
+  <link rel="apple-touch-icon" href="assets/Histoglyph_image.png">
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="Play Histoglyph Portrait and identify historical figures from their portraits.">
+  <title>Portrait — Histoglyph</title>
+  <link rel="stylesheet" href="styles.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9513558430855383" crossorigin="anonymous"></script>
+</head>
+<body>
+  <main class="game-shell portrait-game-shell">
+    <header class="game-header game-header--play portrait-game-header">
+      <div>
+        <a class="play-brand" href="/"><img class="brand-logo" src="assets/Histoglyph_image.png" alt="" aria-hidden="true"><span>Histoglyph</span></a>
+        <nav class="breadcrumbs breadcrumbs--play" aria-label="Breadcrumb">
+          <a href="/">Home</a><span>›</span><a href="portrait.html">Portrait</a><span>›</span><span id="portrait-collection-breadcrumb">Collection</span>
+        </nav>
+        <h1 id="portrait-collection-title">Portrait</h1>
+        <p class="intro">Who is shown in the portrait?</p>
+        <div class="play-settings-summary" aria-label="Selected game settings">
+          <span id="portrait-round-setting-summary">10 rounds</span>
+          <span id="portrait-difficulty-setting-summary">All difficulties</span>
+          <span id="portrait-birth-year-setting-summary">All birth years</span>
+          <span id="portrait-clue-setting-summary">Portrait only</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="secondary-button link-button" href="portrait.html">Change collection</a>
+        <button id="portrait-restart-button" class="secondary-button" type="button">Restart</button>
+      </div>
+    </header>
+
+    <section class="portrait-status-card" aria-label="Portrait game status">
+      <div><span>Round</span><strong><span id="portrait-round-number">1</span>/<span id="portrait-round-total">10</span></strong></div>
+      <div><span>Correct</span><strong id="portrait-correct-count">0</strong></div>
+      <div><span>Hints used</span><strong id="portrait-hints-count">0</strong></div>
+    </section>
+
+    <section class="portrait-game-stage">
+      <article class="portrait-challenge-card portrait-challenge-card--compact">
+        <figure class="portrait-main-figure">
+          <div id="portrait-image-placeholder" class="portrait-main-placeholder" aria-hidden="true">?</div>
+          <img id="portrait-image" class="portrait-main-image" alt="Historical portrait" hidden>
+        </figure>
+
+        <div class="portrait-response-column">
+          <section id="portrait-guess-panel" class="portrait-guess-panel">
+            <div class="portrait-question-heading">
+              <p class="eyebrow">Identify the person</p>
+              <h2>Who is this?</h2>
+            </div>
+
+            <div id="portrait-feedback" class="portrait-feedback-box" aria-live="polite">
+              <strong>Make your guess</strong>
+              <span>Enter a name below. A surname is enough.</span>
+            </div>
+
+            <form id="portrait-guess-form">
+              <label class="sr-only" for="portrait-guess-input">Who is this?</label>
+              <div class="input-row portrait-input-row">
+                <input id="portrait-guess-input" name="guess" type="text" autocomplete="off" placeholder="Enter a name" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="done" required>
+                <button id="portrait-guess-button" class="primary-button" type="submit">Submit guess</button>
+              </div>
+            </form>
+            <button id="portrait-reveal-answer" class="text-button portrait-give-up-button" type="button">I don't know</button>
+          </section>
+
+          <section id="portrait-round-result" class="portrait-round-result portrait-round-result--inline" hidden aria-live="polite">
+            <span id="portrait-result-status" class="round-result-status">Correct</span>
+            <h2 id="portrait-result-name">Historical person</h2>
+            <p id="portrait-result-occupation" class="portrait-result-occupation"></p>
+            <div class="portrait-result-facts">
+              <div><span>Life</span><strong id="portrait-result-years">—</strong></div>
+              <div><span>Born</span><strong id="portrait-result-birthplace">—</strong></div>
+              <div><span>Died</span><strong id="portrait-result-deathplace">—</strong></div>
+            </div>
+            <div id="portrait-result-credit" class="portrait-result-credit" hidden></div>
+            <button id="portrait-next-button" class="primary-button portrait-result-next" type="button" disabled>Next portrait</button>
+          </section>
+        </div>
+      </article>
+
+      <section class="portrait-clues portrait-clues--compact" aria-labelledby="portrait-clues-title">
+        <div class="portrait-clues-heading portrait-clues-heading--compact">
+          <div><p class="eyebrow">Need help?</p><h2 id="portrait-clues-title">Reveal a clue</h2></div>
+          <small>Each revealed clue counts as a hint.</small>
+        </div>
+        <div class="portrait-clue-grid portrait-clue-grid--compact">
+          <article id="portrait-clue-years" class="portrait-clue-item portrait-clue-item--compact" data-clue="years">
+            <div><span>Life years</span><strong class="portrait-clue-value">Hidden</strong></div>
+            <button class="secondary-button portrait-clue-button" type="button" data-reveal-clue="years">Reveal</button>
+          </article>
+          <article id="portrait-clue-occupation" class="portrait-clue-item portrait-clue-item--compact" data-clue="occupation">
+            <div><span>Occupation</span><strong class="portrait-clue-value">Hidden</strong></div>
+            <button class="secondary-button portrait-clue-button" type="button" data-reveal-clue="occupation">Reveal</button>
+          </article>
+          <article id="portrait-clue-places" class="portrait-clue-item portrait-clue-item--compact" data-clue="places">
+            <div><span>Places</span><strong class="portrait-clue-value">Hidden</strong></div>
+            <button class="secondary-button portrait-clue-button" type="button" data-reveal-clue="places">Reveal</button>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand brand--small" href="/"><img class="brand-logo" src="assets/Histoglyph_image.png" alt="" aria-hidden="true"><span>Histoglyph</span></a>
+    <p>© 2026 Histoglyph. All Rights Reserved. · <a href="about.html">About us</a> · <a href="privacy.html">Privacy</a></p>
+  </footer>
+
+  <div id="portrait-summary-modal" class="game-summary-modal" hidden role="dialog" aria-modal="true" aria-labelledby="portrait-summary-title">
+    <div class="game-summary-backdrop" aria-hidden="true"></div>
+    <section class="game-summary-card">
+      <div class="game-summary-confetti" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <span class="game-summary-kicker">Portrait complete</span>
+      <h2 id="portrait-summary-title">Faces remembered.</h2>
+      <p id="portrait-summary-collection" class="game-summary-collection">Collection</p>
+      <p class="game-summary-message">You made it through the gallery.</p>
+
+      <div class="game-summary-main">
+        <span>Correct</span>
+        <strong id="portrait-summary-correct-main">0 / 0</strong>
+        <small>portraits identified</small>
+      </div>
+
+      <div class="game-summary-stats portrait-summary-stats" aria-label="Portrait summary">
+        <div><span>Accuracy</span><strong id="portrait-summary-accuracy">0%</strong></div>
+        <div><span>Hints Used</span><strong id="portrait-summary-hints">0</strong></div>
+        <div><span>Guesses</span><strong id="portrait-summary-attempts">0</strong></div>
+      </div>
+
+      <div class="game-summary-actions">
+        <button id="portrait-play-again-button" class="primary-button game-summary-play-again" type="button">Play again</button>
+        <a class="secondary-button link-button" href="portrait.html">Change collection</a>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="js/portrait-game-supabase.js"></script>
+</body>
+</html>
