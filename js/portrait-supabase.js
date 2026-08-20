@@ -228,8 +228,11 @@ function makeCollectionCard(collection) {
 }
 
 function renderCollections(collections) {
+  const visibleCollections = collections.filter(collection =>
+    collection.status === "available" && Number(collection.available_people || 0) >= 1
+  );
   const groups = new Map();
-  for (const collection of collections) {
+  for (const collection of visibleCollections) {
     if (!groups.has(collection.group_name)) groups.set(collection.group_name, []);
     groups.get(collection.group_name).push(collection);
   }
