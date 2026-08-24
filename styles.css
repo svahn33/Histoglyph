@@ -5183,3 +5183,1019 @@ body {
     padding: 22px 18px;
   }
 }
+
+/* V57 — full-site mobile pass.
+   The goal is a comfortable phone experience without changing game rules or
+   the projection geometry used by Life & Death Map. */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+@media (max-width: 760px) {
+  /* Prevent iOS from zooming the page when a form control receives focus. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .region-button,
+  .tab-button,
+  .danger-button,
+  .dialog-close-button {
+    min-height: 44px;
+  }
+
+  /* Shared public header / navigation. */
+  .site-header {
+    width: min(100% - 24px, 1240px);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px 0 10px;
+  }
+
+  .site-header .brand {
+    width: max-content;
+    max-width: 100%;
+    font-size: 1.18rem;
+  }
+
+  .site-header .brand-logo {
+    width: 31px;
+    height: 31px;
+    flex-basis: 31px;
+  }
+
+  .site-nav {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 0 0 3px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .site-nav::-webkit-scrollbar { display: none; }
+
+  .site-nav a {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.78rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Shared footer. */
+  .site-footer {
+    width: min(100% - 24px, 1240px);
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 22px 0 calc(26px + env(safe-area-inset-bottom));
+  }
+
+  .site-footer p {
+    max-width: 100%;
+    font-size: 0.76rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  /* Homepage. */
+  .home-hero {
+    width: min(100% - 20px, 1240px);
+    min-height: 0;
+    margin: 8px auto 38px;
+    border-radius: 20px;
+  }
+
+  .home-hero-copy {
+    padding: 28px 20px 25px;
+  }
+
+  .home-hero h1 {
+    max-width: 100%;
+    font-size: clamp(2.35rem, 12vw, 3.35rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+  }
+
+  .home-hero-intro {
+    margin: 16px 0 22px;
+    font-size: 0.96rem;
+    line-height: 1.58;
+  }
+
+  .hero-button {
+    width: 100%;
+    min-height: 46px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+
+  .home-map-art--map-only {
+    min-height: 245px !important;
+  }
+
+  .hero-map-only {
+    width: 136% !important;
+    max-width: none;
+    left: -18% !important;
+  }
+
+  .home-section,
+  .mode-page-shell,
+  .site-callout,
+  .content-section,
+  .article-shell {
+    width: min(100% - 20px, 1240px);
+  }
+
+  .home-section {
+    margin-bottom: 44px;
+  }
+
+  .section-heading {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .section-heading h2,
+  .collection-section-heading h2 {
+    font-size: clamp(1.85rem, 9vw, 2.55rem);
+  }
+
+  .mode-grid,
+  .collection-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mode-card,
+  .collection-card {
+    min-height: 0;
+    padding: 19px;
+    border-radius: 17px;
+  }
+
+  .mode-card h2,
+  .collection-card h3 {
+    margin: 20px 0 8px;
+    font-size: 1.45rem;
+  }
+
+  .mode-card-footer,
+  .collection-card-footer {
+    align-items: center;
+    gap: 8px;
+    padding-top: 18px;
+  }
+
+  .mode-card-action,
+  .collection-card-footer .primary-button,
+  .collection-card-footer .secondary-button {
+    min-height: 44px;
+  }
+
+  /* Collection / game-mode landing pages. */
+  .mode-page-shell {
+    margin-top: 12px;
+    margin-bottom: 48px;
+  }
+
+  .breadcrumbs {
+    gap: 6px;
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .mode-hero {
+    gap: 22px;
+    margin: 16px 0 34px;
+    padding: 24px 19px;
+    border-radius: 20px;
+  }
+
+  .mode-hero h1 {
+    font-size: clamp(2.25rem, 11vw, 3.3rem);
+    line-height: 0.98;
+  }
+
+  .mode-hero p:not(.eyebrow) {
+    margin-top: 14px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .mode-rules {
+    gap: 7px;
+  }
+
+  .mode-rules span {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+
+  .mode-rules strong {
+    font-size: 1rem;
+  }
+
+  .collection-groups {
+    gap: 38px;
+  }
+
+  /* Editorial / AdSense content pages. */
+  .content-section {
+    margin-bottom: 34px;
+    padding: 21px 17px;
+    border-radius: 18px;
+  }
+
+  .content-section-heading {
+    margin-bottom: 19px;
+  }
+
+  .content-section-heading h2,
+  .content-section--split h2 {
+    font-size: clamp(1.8rem, 9vw, 2.45rem);
+  }
+
+  .content-section-heading > p:not(.eyebrow),
+  .prose-stack p,
+  .content-card p:not(.eyebrow) {
+    font-size: 0.94rem;
+    line-height: 1.65;
+  }
+
+  .content-card {
+    min-height: 0;
+    padding: 18px;
+    border-radius: 15px;
+  }
+
+  .content-card h3 {
+    font-size: 1.3rem;
+  }
+
+  .content-card .text-link {
+    padding-top: 15px;
+  }
+
+  .content-section--split {
+    gap: 18px;
+  }
+
+  .article-shell {
+    margin-top: 10px;
+    margin-bottom: 50px;
+  }
+
+  .article-hero {
+    margin: 15px 0 16px;
+    padding: 25px 19px;
+    border-radius: 18px;
+  }
+
+  .article-hero h1 {
+    font-size: clamp(2.15rem, 11vw, 3.15rem);
+    line-height: 1;
+  }
+
+  .article-hero > p:not(.eyebrow) {
+    margin-top: 13px;
+    font-size: 0.96rem;
+    line-height: 1.62;
+  }
+
+  .prose-section {
+    margin-bottom: 11px;
+    padding: 20px 17px;
+    border-radius: 17px;
+  }
+
+  .prose-section h2 {
+    margin-bottom: 9px;
+    font-size: clamp(1.55rem, 8vw, 2.15rem);
+  }
+
+  .prose-section p {
+    margin-bottom: 11px;
+    font-size: 0.95rem;
+    line-height: 1.67;
+  }
+
+  /* Game Settings dialogs: phone-height safe, touch friendly and no clipped controls. */
+  .game-settings-dialog {
+    width: calc(100% - 12px);
+    max-width: none;
+    max-height: calc(100dvh - 10px);
+    margin: auto;
+    border-radius: 18px;
+  }
+
+  .game-settings-form {
+    gap: 13px;
+    max-height: calc(100dvh - 12px);
+    padding: 16px 14px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .game-settings-heading h2 {
+    font-size: 1.7rem;
+  }
+
+  .game-settings-heading p:last-child {
+    margin-top: 7px;
+    font-size: 0.8rem;
+    line-height: 1.38;
+  }
+
+  .game-settings-options {
+    gap: 7px;
+  }
+
+  .game-setting-option {
+    min-width: 0;
+    gap: 10px;
+    padding: 11px 12px;
+    border-radius: 12px;
+  }
+
+  .game-setting-copy strong {
+    font-size: 0.92rem;
+  }
+
+  .game-setting-copy small {
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .game-setting-option--number,
+  .game-setting-option--select,
+  .game-setting-option--birth-range {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .game-setting-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    padding: 11px 36px 11px 12px;
+  }
+
+  .round-count-control {
+    width: 100%;
+    grid-template-columns: minmax(92px, 120px) minmax(0, 1fr);
+    align-items: center;
+    justify-items: stretch;
+    gap: 10px;
+  }
+
+  .game-setting-number {
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: left;
+  }
+
+  .include-all-control {
+    justify-self: end;
+    min-height: 40px;
+  }
+
+  .birth-year-range-control {
+    width: 100%;
+    min-width: 0;
+    flex-basis: auto;
+  }
+
+  .birth-year-entry {
+    min-height: 40px;
+    font-size: 16px;
+  }
+
+  .birth-year-dual-range {
+    height: 34px;
+  }
+
+  .game-settings-note {
+    padding: 9px 11px;
+    font-size: 0.73rem;
+    line-height: 1.35;
+  }
+
+  .game-settings-actions {
+    margin: 0 -2px -2px;
+    padding: 15px 2px 2px;
+  }
+
+  /* Shared play-page header. Keep the game itself above the fold. */
+  .game-shell,
+  .timeline-game-shell,
+  .portrait-game-shell {
+    width: min(100% - 12px, 1120px);
+    margin: 8px auto 24px;
+  }
+
+  .game-header--play {
+    gap: 9px;
+    margin-bottom: 10px;
+  }
+
+  .game-header--play .play-brand {
+    gap: 7px;
+    font-size: 1rem;
+  }
+
+  .game-header--play .brand-logo {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+  }
+
+  .game-header--play .breadcrumbs,
+  .game-header--play .intro {
+    display: none;
+  }
+
+  .game-header--play h1 {
+    margin-top: 4px;
+    font-size: clamp(1.55rem, 8vw, 2rem);
+  }
+
+  .game-header--play .play-settings-summary {
+    width: 100%;
+    gap: 5px;
+    margin-top: 7px;
+    padding-bottom: 2px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .game-header--play .play-settings-summary::-webkit-scrollbar { display: none; }
+
+  .game-header--play .play-settings-summary span {
+    flex: 0 0 auto;
+    padding: 5px 7px;
+    font-size: 0.64rem;
+    white-space: nowrap;
+  }
+
+  .game-header--play .header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .game-header--play .header-actions > * {
+    min-width: 0;
+    min-height: 42px;
+    padding: 8px 9px;
+    font-size: 0.72rem;
+  }
+
+  /* Life & Death Map. The exact map aspect ratio remains untouched. */
+  .map-card {
+    border-radius: 14px;
+  }
+
+  .map-game-hud {
+    top: 6px;
+    right: 6px;
+    width: min(270px, calc(100% - 12px));
+    border-radius: 10px;
+  }
+
+  .map-game-hud-item {
+    padding: 6px 4px;
+  }
+
+  .map-game-hud-item span {
+    font-size: 0.53rem;
+  }
+
+  .map-game-hud-item strong {
+    font-size: 0.82rem;
+  }
+
+  .map-stage-wrapper .offline-map-controls {
+    right: 7px;
+    bottom: 7px;
+    gap: 5px;
+  }
+
+  .offline-map-control-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .offline-map-marker-label {
+    max-width: 132px;
+    padding: 4px 5px;
+  }
+
+  .offline-map-marker-year { font-size: 0.61rem; }
+  .offline-map-marker-place { font-size: 0.56rem; }
+
+  .map-footer {
+    padding: 8px 10px;
+  }
+
+  .map-legend {
+    gap: 9px 12px;
+    font-size: 0.72rem;
+  }
+
+  .answer-card {
+    margin-top: 9px;
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  .answer-card label {
+    font-size: 0.86rem;
+  }
+
+  .guess-help {
+    margin: 4px 0 8px;
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .input-row,
+  .portrait-input-row {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .input-row input,
+  .portrait-input-row input {
+    min-height: 44px;
+  }
+
+  .input-row .primary-button,
+  .portrait-input-row .primary-button {
+    width: 100%;
+  }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 9px;
+  }
+
+  .action-row > * {
+    min-width: 0;
+    min-height: 42px;
+    padding: 8px 5px;
+    font-size: 0.68rem;
+    text-align: center;
+  }
+
+  .hint-panel {
+    margin-top: 9px;
+  }
+
+  .feedback {
+    min-height: 20px;
+    margin-top: 8px;
+    font-size: 0.78rem;
+  }
+
+  .round-result {
+    top: auto;
+    right: 6px;
+    bottom: 6px;
+    left: 6px;
+    max-height: min(58dvh, 360px);
+    overflow-y: auto;
+    padding: 11px 12px;
+    border-radius: 12px;
+  }
+
+  .round-result > strong {
+    font-size: 1.55rem;
+  }
+
+  .round-result p { font-size: 0.84rem; }
+  .round-result small { font-size: 0.7rem; }
+
+  .result-portrait,
+  .result-portrait img {
+    width: 82px;
+  }
+
+  /* Timeline: preserve horizontal ordering but use smaller, touch-friendly cards. */
+  .timeline-status-card {
+    margin-bottom: 8px;
+    border-radius: 12px;
+  }
+
+  .timeline-status-card > div {
+    padding: 8px 5px;
+  }
+
+  .timeline-status-card span { font-size: 0.52rem; }
+  .timeline-status-card strong { font-size: 0.9rem; }
+
+  .timeline-board-card--primary {
+    margin-bottom: 10px;
+    border-radius: 15px;
+  }
+
+  .timeline-board-heading {
+    gap: 4px;
+    padding: 11px 12px 8px;
+  }
+
+  .timeline-board-heading h2 {
+    font-size: 1.25rem;
+  }
+
+  .timeline-feedback {
+    min-height: 1em;
+    font-size: 0.7rem;
+  }
+
+  .timeline-board-card--primary .timeline-board-scroll {
+    padding: 15px 6px 18px;
+  }
+
+  .timeline-board-card--primary .timeline-board {
+    min-height: 158px;
+    padding: 16px 4px;
+  }
+
+  .timeline-board::before {
+    left: 22px;
+    right: 22px;
+    height: 3px;
+  }
+
+  .timeline-board::after {
+    right: 16px;
+    width: 9px;
+    height: 9px;
+    border-width: 3px 3px 0 0;
+  }
+
+  .timeline-placed-person {
+    width: 96px;
+    flex-basis: 96px;
+    border-radius: 11px;
+    scroll-snap-align: center;
+  }
+
+  .timeline-placed-person__body {
+    gap: 2px;
+    padding: 7px 6px 8px;
+  }
+
+  .timeline-placed-person__body strong {
+    font-size: 0.63rem;
+  }
+
+  .timeline-placed-person__body span {
+    font-size: 0.78rem;
+  }
+
+  .timeline-drop-slot {
+    width: 50px;
+    height: 88px;
+    flex-basis: 50px;
+    margin: 0 3px;
+    padding: 6px 3px;
+    border-radius: 11px;
+  }
+
+  .timeline-drop-slot span {
+    width: 25px;
+    height: 25px;
+    font-size: 1rem;
+  }
+
+  .timeline-drop-slot small {
+    max-width: 44px;
+    font-size: 0.51rem;
+  }
+
+  .timeline-challenge-layout--below {
+    grid-template-columns: 138px minmax(0, 1fr);
+    justify-items: stretch;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 11px;
+    border-radius: 14px;
+  }
+
+  .timeline-person-card--compact {
+    width: 138px;
+  }
+
+  .timeline-person-card--compact .timeline-person-card__body {
+    padding: 8px 9px 9px;
+  }
+
+  .timeline-person-card--compact h2 {
+    margin: 3px 0 6px;
+    font-size: 0.98rem;
+  }
+
+  .timeline-person-card--compact .timeline-person-card__birthplace {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .timeline-play-instructions {
+    max-width: none;
+    font-size: 0.76rem;
+    line-height: 1.48;
+    text-align: left;
+  }
+
+  /* Portrait: keep image, guessing area and clues compact. */
+  .portrait-status-card {
+    margin-bottom: 7px;
+  }
+
+  .portrait-status-card > div {
+    padding: 7px 4px;
+  }
+
+  .portrait-challenge-card--compact {
+    gap: 8px;
+    padding: 9px;
+    border-radius: 14px;
+  }
+
+  .portrait-challenge-card--compact .portrait-main-figure {
+    width: min(142px, 44vw);
+    max-width: 142px;
+  }
+
+  .portrait-question-heading {
+    margin-bottom: 6px;
+  }
+
+  .portrait-question-heading h2 {
+    font-size: 1.38rem;
+  }
+
+  .portrait-feedback-box {
+    min-height: 42px;
+    margin-bottom: 7px;
+    padding: 7px 8px;
+  }
+
+  .portrait-give-up-button {
+    min-height: 36px;
+    margin-top: 3px;
+  }
+
+  .portrait-clues--compact {
+    padding: 7px;
+    border-radius: 12px;
+  }
+
+  .portrait-clues-heading--compact {
+    margin-bottom: 5px;
+  }
+
+  .portrait-clue-grid--compact {
+    gap: 5px;
+  }
+
+  .portrait-clue-item--compact {
+    min-height: 62px;
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .portrait-clue-item--compact .portrait-clue-button {
+    min-height: 34px;
+  }
+
+  /* All end-of-game dialogs remain fully visible on small screens. */
+  .game-summary-modal {
+    align-items: center;
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+  }
+
+  .game-summary-card {
+    width: min(100%, 520px);
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    padding: 22px 15px 16px;
+    border-radius: 19px;
+  }
+
+  .game-summary-card h2 {
+    font-size: clamp(2rem, 11vw, 2.8rem);
+  }
+
+  .game-summary-message {
+    margin-bottom: 14px;
+    font-size: 0.84rem;
+  }
+
+  .game-summary-main {
+    margin-bottom: 10px;
+    padding: 13px 12px;
+  }
+
+  .game-summary-main strong {
+    font-size: 2.4rem;
+  }
+
+  .game-summary-stats,
+  .timeline-summary-stats,
+  .portrait-summary-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .game-summary-stats > div {
+    padding: 9px 5px;
+  }
+
+  .game-summary-actions {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+}
+
+@media (max-width: 430px) {
+  .site-header,
+  .site-footer {
+    width: calc(100% - 18px);
+  }
+
+  .site-nav a {
+    padding: 8px 9px;
+    font-size: 0.74rem;
+  }
+
+  .home-hero,
+  .home-section,
+  .mode-page-shell,
+  .content-section,
+  .article-shell {
+    width: calc(100% - 14px);
+  }
+
+  .home-hero-copy {
+    padding-inline: 17px;
+  }
+
+  .home-map-art--map-only {
+    min-height: 215px !important;
+  }
+
+  .mode-card,
+  .collection-card {
+    padding: 17px;
+  }
+
+  .mode-card-footer,
+  .collection-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mode-card-footer .primary-button,
+  .mode-card-footer .secondary-button,
+  .collection-card-footer .primary-button,
+  .collection-card-footer .secondary-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .game-settings-form {
+    padding-inline: 11px;
+  }
+
+  .round-count-control {
+    grid-template-columns: 1fr;
+  }
+
+  .include-all-control {
+    justify-self: start;
+  }
+
+  .birth-year-range-values {
+    gap: 5px;
+  }
+
+  .action-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .action-row #next-button {
+    grid-column: 1 / -1;
+  }
+
+  .timeline-challenge-layout--below {
+    grid-template-columns: 124px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .timeline-person-card--compact {
+    width: 124px;
+  }
+
+  .timeline-play-instructions {
+    font-size: 0.7rem;
+  }
+
+  .timeline-placed-person {
+    width: 88px;
+    flex-basis: 88px;
+  }
+
+  .timeline-drop-slot {
+    width: 46px;
+    flex-basis: 46px;
+  }
+
+  .portrait-clue-grid--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .portrait-clue-item--compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 48px;
+  }
+
+  .portrait-clue-item--compact .portrait-clue-button {
+    width: auto;
+    min-width: 66px;
+  }
+
+  .game-summary-card {
+    padding-inline: 13px;
+  }
+}
+
+/* V57 follow-up: play pages use the same readable footer treatment on dark backgrounds. */
+@media (max-width: 760px) {
+  body:not(.site-page) > .site-footer {
+    color: rgba(245, 251, 251, 0.76);
+    border-top-color: rgba(255, 255, 255, 0.14);
+  }
+  body:not(.site-page) > .site-footer .brand { color: #ffffff; }
+  body:not(.site-page) > .site-footer a:hover { color: var(--highlight); }
+}
+
+@media (max-width: 430px) {
+  .portrait-clue-grid--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .portrait-clue-item--compact {
+    grid-template-columns: 1fr;
+    align-content: start;
+    min-height: 60px;
+  }
+
+  .portrait-clue-item--compact .portrait-clue-button {
+    width: 100%;
+    min-width: 0;
+  }
+}
