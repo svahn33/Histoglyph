@@ -129,7 +129,8 @@ async function showApp() {
       }
     });
   }
-  await Promise.all([refreshMetrics(), loadPlaces(), loadPersons()]);
+  await Promise.all([refreshMetrics(), loadPlaces(), loadPersonTagFilter()]);
+  await loadPersons();
   clearPlace(); clearPerson();
 }
 async function refreshMetrics() {
@@ -142,6 +143,35 @@ async function refreshMetrics() {
   const [places, verified, review, persons] = await Promise.all(queries);
   $("metric-places").textContent = places.count ?? 0; $("metric-verified").textContent = verified.count ?? 0;
   $("metric-review").textContent = review.count ?? 0; $("metric-persons").textContent = persons.count ?? 0;
+}
+async function loadPersonTagFilter() {
+  const select = $("person-tag-filter");
+  if (!select) return;
+  const currentValue = select.value || "all";
+  const { data, error } = await supabase.from("tags").select("slug,name").order("name");
+  if (error) {
+    console.warn("Could not load person tag filter:", error);
+    return;
+  }
+  const options = [new Option("All tags", "all")];
+  for (const tag of data || []) {
+    const label = tag.name && tag.name.toLowerCase() !== tag.slug.toLowerCase()
+      ? `${tag.name} (${tag.slug})`
+      : (tag.name || tag.slug);
+    options.push(new Option(label, tag.slug));
+  }
+  select.replaceChildren(...options);
+  select.value = options.some(option => option.value === currentValue) ? currentValue : "all";
+}
+
+async function personIdsForTag(slug) {
+  if (!slug || slug === "all") return null;
+  const { data, error } = await supabase
+    .from("person_tags")
+    .select("person_id,tags!inner(slug)")
+    .eq("tags.slug", slug);
+  if (error) throw error;
+  return [...new Set((data || []).map(row => row.person_id).filter(Boolean))];
 }
 async function loadPlaces() {
   const query = $("place-search").value.trim(); const status = $("place-status-filter").value;
@@ -183,18 +213,95 @@ async function nextReview() {
   const { data, error } = await supabase.from("places").select("id").neq("verification_status", "manually_verified").order("updated_at").limit(1).maybeSingle();
   if (error) return message($("place-validation"), error.message, "error"); if (data) loadPlace(data.id); else message($("place-validation"), "Every place is verified.", "success");
 }
+
+function applyPlaceBulkFilters(request, query, status) {
+  if (query) request = request.ilike("search_text", `%${query}%`);
+  if (status !== "all") request = request.eq("verification_status", status);
+  else request = request.neq("verification_status", "manually_verified");
+  return request;
+}
+
+async function verifyAllPlaces() {
+  const button = $("verify-all-places-button");
+  const query = $("place-search").value.trim();
+  const status = $("place-status-filter").value;
+
+  if (status === "manually_verified") {
+    return message($("place-validation"), "The current filter already contains only manually verified places.", "success");
+  }
+
+  let countRequest = supabase.from("places").select("id", { count: "exact", head: true });
+  countRequest = applyPlaceBulkFilters(countRequest, query, status);
+  const { count, error: countError } = await countRequest;
+  if (countError) return message($("place-validation"), countError.message, "error");
+
+  const total = Number(count || 0);
+  if (!total) return message($("place-validation"), "There are no matching places left to verify.", "success");
+
+  const scope = query || status !== "all" ? "matching the current search and status filter" : "that are not already manually verified";
+  if (!confirm(`Mark all ${total} places ${scope} as manually verified?
+
+This changes their verification status in bulk. It does not check their coordinates or sources for you.`)) return;
+
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "Verifying…";
+  message($("place-validation"), `Updating ${total} places…`);
+
+  try {
+    let updateRequest = supabase.from("places").update({ verification_status: "manually_verified" });
+    updateRequest = applyPlaceBulkFilters(updateRequest, query, status);
+    const { error } = await updateRequest;
+    if (error) return message($("place-validation"), error.message, "error");
+
+    state.placePage = 0;
+    await refreshMetrics();
+    if (state.selectedPlace?.id) await loadPlace(state.selectedPlace.id);
+    else await loadPlaces();
+    message($("place-validation"), `${total} places marked as manually verified.`, "success");
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
 async function loadPersons() {
   const query = $("person-search").value.trim();
   const difficulty = $("person-difficulty-filter").value;
   const verification = $("person-verification-filter").value;
-  let request = supabase.from("persons").select("id,name,period,difficulty,published,verification_status,birth_place:places!persons_birth_place_id_fkey(name),death_place:places!persons_death_place_id_fkey(name)", { count: "exact" }).order("name").range(state.personPage * PAGE_SIZE, state.personPage * PAGE_SIZE + PAGE_SIZE - 1);
+  const imageStatus = $("person-image-filter")?.value || "all";
+  const tag = $("person-tag-filter")?.value || "all";
+
+  let matchingPersonIds = null;
+  try {
+    matchingPersonIds = await personIdsForTag(tag);
+  } catch (error) {
+    return message($("person-validation"), `Tag filter failed: ${error.message}`, "error");
+  }
+
+  if (Array.isArray(matchingPersonIds) && matchingPersonIds.length === 0) {
+    state.personCount = 0;
+    $("person-list").replaceChildren();
+    $("person-page-label").textContent = "Page 1 · 0 results";
+    $("person-prev").disabled = true;
+    $("person-next").disabled = true;
+    return;
+  }
+
+  let request = supabase.from("persons").select("id,name,period,difficulty,published,verification_status,image_path,birth_place:places!persons_birth_place_id_fkey(name),death_place:places!persons_death_place_id_fkey(name)", { count: "exact" }).order("name").range(state.personPage * PAGE_SIZE, state.personPage * PAGE_SIZE + PAGE_SIZE - 1);
   if (query) request = request.ilike("search_text", `%${query}%`);
   if (difficulty !== "all") request = request.eq("difficulty", Number(difficulty));
   if (verification === "verified") request = request.eq("verification_status", "manually_verified");
   if (verification === "not_verified") request = request.neq("verification_status", "manually_verified");
+  if (imageStatus === "has_image") request = request.not("image_path", "is", null);
+  if (imageStatus === "missing_image") request = request.is("image_path", null);
+  if (Array.isArray(matchingPersonIds)) request = request.in("id", matchingPersonIds);
+
   const { data, count, error } = await request; if (error) return message($("person-validation"), error.message, "error");
   state.personCount = count || 0;
-  $("person-list").replaceChildren(...(data || []).map(person => recordButton(person.name, `${person.birth_place?.name || "?"} → ${person.death_place?.name || "?"} · difficulty ${person.difficulty}${person.published ? " · published" : ""}`, state.selectedPerson?.id === person.id, () => loadPerson(person.id), person.verification_status)));
+  $("person-list").replaceChildren(...(data || []).map(person => {
+    const imageLabel = person.image_path ? "image" : "no image";
+    return recordButton(person.name, `${person.birth_place?.name || "?"} → ${person.death_place?.name || "?"} · difficulty ${person.difficulty} · ${imageLabel}${person.published ? " · published" : ""}`, state.selectedPerson?.id === person.id, () => loadPerson(person.id), person.verification_status);
+  }));
   $("person-page-label").textContent = `Page ${state.personPage + 1} · ${state.personCount} results`;
   $("person-prev").disabled = state.personPage === 0; $("person-next").disabled = (state.personPage + 1) * PAGE_SIZE >= state.personCount;
 }
@@ -327,9 +434,11 @@ $("place-search").addEventListener("input",()=>debounce(()=>{state.placePage=0;l
 $("person-search").addEventListener("input",()=>debounce(()=>{state.personPage=0;loadPersons();}));
 $("person-difficulty-filter").addEventListener("change",()=>{state.personPage=0;loadPersons();});
 $("person-verification-filter").addEventListener("change",()=>{state.personPage=0;loadPersons();});
+$("person-image-filter").addEventListener("change",()=>{state.personPage=0;loadPersons();});
+$("person-tag-filter").addEventListener("change",()=>{state.personPage=0;loadPersons();});
 $("place-prev").addEventListener("click",()=>{state.placePage=Math.max(0,state.placePage-1);loadPlaces();}); $("place-next").addEventListener("click",()=>{state.placePage++;loadPlaces();});
 $("person-prev").addEventListener("click",()=>{state.personPage=Math.max(0,state.personPage-1);loadPersons();}); $("person-next").addEventListener("click",()=>{state.personPage++;loadPersons();});
-$("new-place-button").addEventListener("click",clearPlace); $("next-review-button").addEventListener("click",nextReview); $("place-form").addEventListener("submit",savePlace); $("delete-place-button").addEventListener("click",deletePlace);
+$("new-place-button").addEventListener("click",clearPlace); $("next-review-button").addEventListener("click",nextReview); $("verify-all-places-button").addEventListener("click",verifyAllPlaces); $("place-form").addEventListener("submit",savePlace); $("delete-place-button").addEventListener("click",deletePlace);
 $("new-person-button").addEventListener("click",clearPerson); $("person-form").addEventListener("submit",savePerson); $("delete-person-button").addEventListener("click",deletePerson);
 setupPlacePicker("birth"); setupPlacePicker("death");
 ["place-latitude","place-longitude"].forEach(id=>$(id).addEventListener("input",()=>{const lat=Number($("place-latitude").value),lon=Number($("place-longitude").value);if(Number.isFinite(lat)&&Number.isFinite(lon))state.map?.setEditableLocation(lat,lon);}));

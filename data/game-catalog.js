@@ -53,6 +53,16 @@ export const LIFE_MAP_COLLECTIONS = [
     filter: { anyTags: ["american-president"] }
   },
   {
+    id: "world-war-two",
+    group: "Global",
+    title: "World War II",
+    description:
+      "Political leaders, commanders, resistance figures, scientists and others connected to the Second World War.",
+    status: "available",
+    roundLimit: 10,
+    filter: { anyTags: ["world-war-two"] }
+  },
+  {
     id: "north-american-figures",
     group: "North America",
     title: "North American Figures",

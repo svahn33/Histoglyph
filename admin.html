@@ -58,7 +58,7 @@
             <label>Search places<input id="place-search" type="search" placeholder="Name, country or legacy ID"></label>
             <label>Status<select id="place-status-filter"><option value="all">All statuses</option><option value="manually_verified">Manually verified</option><option value="automatically_matched">Automatically matched</option><option value="unverified">Unverified</option><option value="uncertain">Uncertain</option></select></label>
           </div>
-          <div class="browser-actions"><button id="new-place-button" class="primary-button" type="button">New place</button><button id="next-review-button" class="secondary-button" type="button">Next to review</button></div>
+          <div class="browser-actions"><button id="new-place-button" class="primary-button" type="button">New place</button><button id="next-review-button" class="secondary-button" type="button">Next to review</button><button id="verify-all-places-button" class="secondary-button bulk-place-verify-button" type="button">Manually verify all</button></div>
           <div id="place-list" class="record-list"></div>
           <div class="pagination-row"><button id="place-prev" type="button" class="secondary-button">Previous</button><span id="place-page-label">Page 1</span><button id="place-next" type="button" class="secondary-button">Next</button></div>
         </aside>
@@ -107,6 +107,18 @@
                   <option value="all">All</option>
                   <option value="verified">Verified</option>
                   <option value="not_verified">Not verified</option>
+                </select>
+              </label>
+              <label>Image status
+                <select id="person-image-filter">
+                  <option value="all">All images</option>
+                  <option value="has_image">Has image</option>
+                  <option value="missing_image">Missing image</option>
+                </select>
+              </label>
+              <label>Tag
+                <select id="person-tag-filter">
+                  <option value="all">All tags</option>
                 </select>
               </label>
             </div>

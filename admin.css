@@ -523,3 +523,26 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* V58: keep the bulk place-verification action easy to reach on phones. */
+@media (max-width: 760px) {
+  .browser-actions .bulk-place-verify-button {
+    grid-column: 1 / -1;
+  }
+}
+
+
+/* V59: People browser supports four compact filters without clipping labels. */
+.person-filter-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.person-filter-grid label { min-width: 0; }
+.person-filter-grid select {
+  width: 100%;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+@media (max-width: 620px) {
+  .person-filter-grid { grid-template-columns: 1fr; }
+}
